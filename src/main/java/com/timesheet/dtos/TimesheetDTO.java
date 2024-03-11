@@ -18,6 +18,7 @@ public class TimesheetDTO {
 	private boolean businessDaysPresent;
 	private boolean holidaysPresent;
 	private boolean weekendDaysPresent;
+	public transient boolean loaded;
 	
 	public TimesheetDTO() {}
 	

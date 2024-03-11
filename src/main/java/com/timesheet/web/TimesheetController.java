@@ -25,7 +25,6 @@ public class TimesheetController {
 	private TimesheetService timesheetService;
 	private TimesheetPeriods tp=new TimesheetPeriods();
 	
-	
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
 	@GetMapping("/timesheet")
 	public TimesheetDTO getTimeSheetLine(@RequestParam(name="per",defaultValue = "") String period, @RequestParam(name = "eid") String employeeID) {
@@ -56,7 +55,7 @@ public class TimesheetController {
 	}
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
 	@PostMapping("/timesheet/save")
-	public boolean saveTimesheet(@RequestParam(name="per", defaultValue = "")String period, @RequestBody TimesheetDTO timesheetDTO) {
+	public TimesheetDTO saveTimesheet(@RequestParam(name="per", defaultValue = "")String period, @RequestBody TimesheetDTO timesheetDTO) {
 		try {
 			LocalDate.parse(period, TimesheetPeriods.dtf);
 		} catch (Exception e) {

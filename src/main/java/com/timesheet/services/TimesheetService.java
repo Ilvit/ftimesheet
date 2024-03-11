@@ -98,7 +98,7 @@ public class TimesheetService {
 		return null;
 	}
 	
-	public boolean saveTimesheet(TimesheetDTO timesheetDTO) {
+	public TimesheetDTO saveTimesheet(TimesheetDTO timesheetDTO) {
 		if(timesheetDTO.isBusinessDaysPresent()) {
 			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getBusinessDaysLine());
 		}
@@ -112,8 +112,9 @@ public class TimesheetService {
 		if(savedSheetLineRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod())==null) {
 			UserSavedSheetLines userSavedSl=new UserSavedSheetLines(null, timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod(), false, false);
 			savedSheetLineRepository.save(userSavedSl);
-		}		
-		return true;
+		}	
+		
+		return getTimesheet(timesheetDTO.getTimesheetPeriod(), timesheetDTO.getEmployee().getId());
 	}
 	public boolean updateTimesheet(TimesheetDTO timesheetDTO) {
 		if(timesheetDTO.isBusinessDaysPresent())sheetdayService.updateTimesheetLine(timesheetDTO.getTimesheet().getBusinessDaysLine());
