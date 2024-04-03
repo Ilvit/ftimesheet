@@ -3,7 +3,6 @@ package com.timesheet.constants;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,11 +34,18 @@ public class TimesheetPeriods {
 		}
 		return currentPeriod;
 	}
+	public static boolean isPeriodFinished(String period) {
+		LocalDate today=LocalDate.now();
+		LocalDate periodEndDate = LocalDate.parse(period, dtf);		
+		if(today.isEqual(periodEndDate)||today.isAfter(periodEndDate))return true;
+		return false;
+	}
+	
 	public String getPrecedentPeriod(String period) {
 		LocalDate ld = null;
 		try {
 			ld = LocalDate.parse(period, dtf);
-		} catch (DateTimeParseException e) {
+		} catch (Exception e) {
 			TimesheetPeriods tp=new TimesheetPeriods();
 			period=tp.getCurrentPeriod();
 		}

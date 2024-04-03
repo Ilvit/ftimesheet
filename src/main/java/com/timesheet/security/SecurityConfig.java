@@ -57,7 +57,7 @@ public class SecurityConfig {
         		.csrf(csrf->csrf.disable())
         		.cors(Customizer.withDefaults())
         		.authorizeHttpRequests(hr->hr.antMatchers("/authentication/login/**").permitAll())
-        		.authorizeHttpRequests(hr->hr.antMatchers("localhost:8081/h2-console/**").permitAll())
+        		.authorizeHttpRequests(hr->hr.antMatchers("http://localhost:8081/h2-console/**").permitAll())
 //        		.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
         		.authorizeHttpRequests(hr->hr.anyRequest().authenticated())
 //        		.httpBasic(Customizer.withDefaults())        		

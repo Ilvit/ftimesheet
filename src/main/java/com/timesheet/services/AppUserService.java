@@ -1,6 +1,5 @@
 package com.timesheet.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,14 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timesheet.entities.AppUser;
-import com.timesheet.repositories.AppRoleRepository;
 import com.timesheet.repositories.AppUserRepository;
+import com.timesheet.repositories.RoleRepository;
 @Service
 @Transactional
 public class AppUserService implements AppUserserviceInterface {
 
 	@Autowired
-	private AppRoleRepository appRoleRepository;
+	private RoleRepository roleRepository;
 	@Autowired
 	private AppUserRepository appUserRepository;
 	@Autowired
@@ -26,28 +25,28 @@ public class AppUserService implements AppUserserviceInterface {
 	@Override
 	public void addRoleToUser(String username, String roleName) {
 		AppUser user=appUserRepository.findByUsername(username);
-		user.getRoles().add(appRoleRepository.findByRoleName(roleName));
+		user.getRoles().add(roleRepository.findByName(roleName));
 		appUserRepository.save(user);
 	}
 
 	@Override
-	public void addRolesToUser(String username, ArrayList<String> rolesNames) {
+	public void addRolesToUser(String username, List<String> rolesNames) {
 		AppUser appUser=appUserRepository.findByUsername(username);
 		rolesNames.forEach(rn->{
-			appUser.getRoles().add(appRoleRepository.findByRoleName(rn));
+			appUser.getRoles().add(roleRepository.findByName(rn));
 		});
 		appUserRepository.save(appUser);
 	}
 
 	@Override
-	public void removeRole(String roleName, Long userId) {
-		AppUser appUser=appUserRepository.findById(userId).get();
-		appUser.getRoles().remove(appRoleRepository.findByRoleName(roleName));
+	public void removeRoleToUser(String username, String roleName) {
+		AppUser appUser=appUserRepository.findByUsername(username);
+		appUser.getRoles().remove(roleRepository.findByName(roleName));
 		appUserRepository.save(appUser);
 	}
 
 	@Override
-	public void addUser(AppUser user) {
+	public void saveUser(AppUser user) {
 		AppUser appUser=AppUser.builder()
 				.username(user.getUsername())
 				.password(passwordEncoder.encode(user.getPassword()))
@@ -58,8 +57,8 @@ public class AppUserService implements AppUserserviceInterface {
 	}
 
 	@Override
-	public void updateUser(Long appUserId, AppUser user) {
-		AppUser appUser=appUserRepository.findById(appUserId).get();
+	public void updateUser(String username, AppUser user) {
+		AppUser appUser=appUserRepository.findByUsername(username);
 		appUser.setUsername(user.getUsername());
 		appUser.setEmployeeID(user.getEmployeeID());
 		appUser.setMail(user.getMail());
@@ -67,20 +66,22 @@ public class AppUserService implements AppUserserviceInterface {
 		appUser.getRoles().clear();
 		user.getUserRoles().forEach(ur->{
 			if(ur.isHasRole()) {
-				appUser.getRoles().add(appRoleRepository.findByRoleName(ur.getRoleName().toString()));
+				appUser.getRoles().add(roleRepository.findByName(ur.getRoleName()));
 			}			
 		});
 		appUserRepository.save(appUser);
 	}
 
 	@Override
-	public void deleteAppUser(Long appUserId) {
-		appUserRepository.deleteById(appUserId);
+	public void deleteUser(String username) {
+		appUserRepository.deleteByUsername(username);
 	}
 
 	@Override
 	public AppUser getUser(String username) {
-		return appUserRepository.findByUsername(username);
+		AppUser au=appUserRepository.findByUsername(username);
+		au.loadUserRoles();
+		return au;
 	}
 
 	@Override

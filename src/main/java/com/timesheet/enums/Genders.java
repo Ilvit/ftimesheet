@@ -2,5 +2,5 @@ package com.timesheet.enums;
 
 public enum Genders {
 
-	MALE, FEMALE
+	MALE, FEMALE, OTHER
 }

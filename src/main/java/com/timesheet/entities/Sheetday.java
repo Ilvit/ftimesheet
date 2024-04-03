@@ -24,8 +24,11 @@ public class Sheetday {
 	private LocalDate date;
 	private int hours;
 	private DayType dayType ;
+	private String projectName;
 	private boolean weekend;
+	private boolean holiday;
 	private boolean signed;
-	private boolean approuved;
+	private boolean rejected;
+	private boolean approved;
 	
 }

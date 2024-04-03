@@ -1,6 +1,9 @@
 package com.timesheet;
 
+import java.time.LocalDate;
+
 import com.timesheet.constants.IDGenerator;
+import com.timesheet.constants.TimesheetPeriods;
 
 public class Tests {
 
@@ -25,7 +28,11 @@ public class Tests {
 		DateTimeFormatter dtf2=DateTimeFormatter.ofPattern("dd");
 		System.out.println(ld.format(dtf2));
 		System.out.println(ld);
-//*/		
-		System.out.println(new IDGenerator().getGeneratedID());
+//*/	
+		LocalDate today=LocalDate.parse("mardi_19-mars-2024", TimesheetPeriods.dtf);
+		LocalDate tomorrow=LocalDate.parse("mercredi_20-mars-2024", TimesheetPeriods.dtf);
+		LocalDate now=LocalDate.now();
+		System.out.println(today.isEqual(now));
+		System.out.println(tomorrow.isAfter(today));
 	}
 }

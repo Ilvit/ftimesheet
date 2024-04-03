@@ -1,5 +1,6 @@
 package com.timesheet.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,9 @@ public class EmployeeService {
 		
 	public Employee getEmployee(String employeeID) {
 		return employeeRepository.findById(employeeID).get();
+	}
+	public List<Employee>getAllEmployees(){
+		return employeeRepository.findAll();
 	}
 	public String getEmployeeID(String employeeName) {		
 		return employeeRepository.findByName(employeeName).getId();
@@ -46,7 +50,7 @@ public class EmployeeService {
 	}
 	public boolean addNewEmployee(Employee employeeRequestDTO) {
 		Employee employee=new Employee();
-		employee.setId(UUID.randomUUID().toString());
+		employee.setId(UUID.randomUUID().toString().substring(0, 10).toUpperCase());
 		employee.setName(employeeRequestDTO.getName());
 		employee.setPostName(employeeRequestDTO.getPostName());
 		employee.setNickName(employeeRequestDTO.getNickName());
@@ -54,6 +58,19 @@ public class EmployeeService {
 		employee.setMail(employeeRequestDTO.getMail());
 		employee.setPhoneNumber(employeeRequestDTO.getPhoneNumber());
 		
+		employeeRepository.save(employee);
+		return true;
+	}
+	public boolean updateEmployee(Employee employeeRequestDTO) {
+		Employee employee=employeeRepository.findById(employeeRequestDTO.getId()).get();
+		employee.setName(employeeRequestDTO.getName());
+		employee.setPostName(employeeRequestDTO.getPostName());
+		employee.setNickName(employeeRequestDTO.getNickName());
+		employee.setGender(employeeRequestDTO.getGender());
+		employee.setMail(employeeRequestDTO.getMail());
+		employee.setPhoneNumber(employeeRequestDTO.getPhoneNumber());
+		employee.setPosition(employeeRequestDTO.getPosition());
+		employee.setSupervisorID(employeeRequestDTO.getSupervisorID());
 		employeeRepository.save(employee);
 		return true;
 	}

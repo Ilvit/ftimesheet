@@ -1,5 +1,6 @@
 package com.timesheet.services;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,15 +10,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timesheet.constants.CodeType;
+import com.timesheet.constants.PeriodVars;
 import com.timesheet.constants.TimesheetPeriods;
 import com.timesheet.dtos.TimesheetDTO;
+import com.timesheet.dtos.TimesheetState;
 import com.timesheet.entities.Employee;
-import com.timesheet.entities.UserSavedSheetLines;
+import com.timesheet.entities.Notification;
+import com.timesheet.entities.Sheetday;
+import com.timesheet.entities.TimesheetSaver;
+import com.timesheet.entities.USAIDProject;
+import com.timesheet.entities.Vacation;
 import com.timesheet.enums.DayType;
+import com.timesheet.enums.Positions;
+import com.timesheet.mappers.NotificationRequest;
 import com.timesheet.mappers.Timesheet;
+import com.timesheet.mappers.VacationReport;
 import com.timesheet.repositories.EmployeeRepository;
+import com.timesheet.repositories.NotificationRepository;
 import com.timesheet.repositories.SheetdayRepository;
-import com.timesheet.repositories.UserSavedSheetLineRepository;
+import com.timesheet.repositories.TimesheetSaverRepository;
+import com.timesheet.repositories.USAIDProjectRepository;
+import com.timesheet.repositories.VacationRepository;
 
 @Service
 @Transactional
@@ -29,110 +42,166 @@ public class TimesheetService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	@Autowired
-	private UserSavedSheetLineRepository savedSheetLineRepository;
+	private TimesheetSaverRepository timesheetSaverRepository;
+	@Autowired
+	private USAIDProjectRepository usaidProjectRepository;	
+	@Autowired
+	private NotificationRepository notificationRepository;
+	@Autowired
+	private VacationRepository vacationRepository;
+	
+	public TimesheetDTO getNewTimesheet(String employeeID) {		
+		Employee employee=employeeRepository.findById(employeeID).get();
+		Employee supervisor=employeeRepository.findById(employee.getSupervisorID()).get();
+		TimesheetDTO timesheetDTO=new TimesheetDTO(new Timesheet());
+		
+		List<String>rdProjects=new ArrayList<>();
+		List<String>hdProjects=new ArrayList<>();
+		List<String>allProjects=new ArrayList<>();
+		usaidProjectRepository.findAll().forEach(proj->{
+			allProjects.add(proj.getProjectName());
+		});
+		TimesheetPeriods tp=new TimesheetPeriods();
+		timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, TimesheetPeriods.currentPeriod, false, false, false, false, false));
+		TimesheetSaver ussl=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, tp.getPrecedentPeriod(tp.getCurrentPeriod()));
+		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
+		tstate.setSupervisor(supervisor);
+		tstate.setVacationReport(getAllVacationDays(employeeID));
+		
+		if(ussl!=null) {				
+			ussl.setHasNewCreated(true);
+			timesheetSaverRepository.save(ussl);
+		}
+		
+		timesheetDTO.setEmployee(employee);
+		timesheetDTO.setPeriodStates(tstate.getPeriodStates());
+		timesheetDTO.setRdProjects(rdProjects);
+		timesheetDTO.setHdProjects(hdProjects);
+		timesheetDTO.setAllProjects(allProjects);  
+		timesheetDTO.setTimesheetPeriod(TimesheetPeriods.currentPeriod);
+		timesheetDTO.setTimesheetsPeriods(tstate.getUsersPeriods());
+		saveTimesheet(timesheetDTO);
+		return timesheetDTO;
+	}
 	
 	public TimesheetDTO getTimesheet(String period, String employeeID) {		
-		TimesheetPeriods tp=new TimesheetPeriods();
+		TimesheetState tstate=new TimesheetState(period, employeeRepository.findById(employeeID).get(), timesheetSaverRepository.findByEmployeeID(employeeID));
 		TimesheetDTO timesheetDTO=new TimesheetDTO();
 		Timesheet timesheet=new Timesheet();
 		
-		List<String>usersTimesheetPeriod=new ArrayList<>();
+		if(tstate.isTimesheetPeriodExists()) {	//if the timesheet of this period exists	
+			fillTimesheet(LocalDate.parse(period, TimesheetPeriods.dtf), timesheet, timesheetDTO, employeeID, tstate.getUsersPeriods());				
+			TimesheetSaver tsaved=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, period);
+			if(TimesheetPeriods.isPeriodFinished(period)) {//the period is finished
+				timesheet.setSignable(true);
+				if(tsaved.isSigned()) {//if the timesheet is signed
+					timesheet.setSigned(true);
+					timesheet.setSignable(false);
+					timesheet.setApprovable(true);
+				}
+				if(tsaved.isApproved()) {
+					timesheet.setApproved(true);
+					timesheet.setApprovable(false);
+					timesheet.setApprovableByCOP(true);
+				}
+				if(tsaved.isRejected()) {//if it's not signed or it is rejected
+					timesheet.setSignable(true);
+					timesheet.setRejected(true);
+					timesheet.setSigned(false);
+				}					
+				if(tsaved.isApprovedByCOP()) {
+					timesheet.setApprovedByCOP(true);
+					timesheet.setApprovableByCOP(false);						timesheet.setSignable(false);
+				}
+				
+			}
+			timesheetDTO.setTimesheetPeriod(period);
+			timesheetDTO.setTimesheet(timesheet);;
+			return timesheetDTO;
+			
+		}
+		return null;
+	}
+	
+	public TimesheetDTO getNewTimesheetLine(String period, String employeeID, String daysCode, String project) {
+		TimesheetDTO timesheetDTO=new TimesheetDTO();
+		Timesheet timesheet=new Timesheet();
+		TimesheetState tstate=new TimesheetState(period, employeeRepository.findById(employeeID).get(), timesheetSaverRepository.findByEmployeeID(employeeID));
 		
-		savedSheetLineRepository.findByEmployeeID(employeeID).forEach(ussl->{
-			usersTimesheetPeriod.add(ussl.getPeriod());
-		});
-		if(usersTimesheetPeriod.isEmpty()) {//There is no timesheet for this user
+		if(tstate.isTimesheetExists()) {//if a timesheet exists
+			fillTimesheetLists(LocalDate.parse(period, TimesheetPeriods.dtf), period, employeeID, CodeType.getType(daysCode), timesheet, project, timesheetDTO);
+			timesheetDTO.setTimesheetsPeriods(tstate.getUsersPeriods());
 			timesheetDTO.setTimesheet(timesheet);
 			return timesheetDTO;
-		}else {//There is timesheet lines
-			if(usersTimesheetPeriod.contains(TimesheetPeriods.currentPeriod)) {//Current period
-				timesheetDTO.setTimesheetPeriod(TimesheetPeriods.currentPeriod);
-				fillTimesheet(LocalDate.parse(TimesheetPeriods.currentPeriod, TimesheetPeriods.dtf), timesheet, timesheetDTO, employeeID, usersTimesheetPeriod);
-				return timesheetDTO;
-			}else if(usersTimesheetPeriod.contains(tp.getPrecedentPeriod(period))) {//precedent period
-				timesheetDTO.setTimesheetPeriod(tp.getPrecedentPeriod(TimesheetPeriods.currentPeriod));
-				fillTimesheet(LocalDate.parse(tp.getPrecedentPeriod(TimesheetPeriods.currentPeriod), TimesheetPeriods.dtf), timesheet, timesheetDTO, employeeID, usersTimesheetPeriod);
-				return timesheetDTO;
-			}
+		}else {
+			System.out.println("Any timesheet exists for this user");
 		}
 		return null;
 	}
-	
-	public TimesheetDTO getNewTimesheetLine(String period, String employeeID, String daysCode) {
-		TimesheetPeriods tp=new TimesheetPeriods();
-		TimesheetDTO timesheetDTO=new TimesheetDTO();
-		Timesheet timesheet=new Timesheet();
-		
-		List<String>usersTimesheetPeriod=new ArrayList<>();
-		
-		savedSheetLineRepository.findByEmployeeID(employeeID).forEach(ussl->{
-			usersTimesheetPeriod.add(ussl.getPeriod());
-		});
-		
-		if(usersTimesheetPeriod.isEmpty()) {//The user doesn't have any timesheet
-			System.out.println("empty timesheet?: "+usersTimesheetPeriod.isEmpty());
-			LocalDate ld = LocalDate.parse(TimesheetPeriods.currentPeriod, TimesheetPeriods.dtf);
-			fillTimesheetLists(ld, period, employeeID, CodeType.getType(daysCode), timesheet, timesheetDTO);
-			if(!usersTimesheetPeriod.contains(period))usersTimesheetPeriod.add(period);
-			timesheetDTO.setTimesheetsPeriods(usersTimesheetPeriod);
-			
-			return timesheetDTO;
-		}else {//A period exists
-			if(usersTimesheetPeriod.contains(TimesheetPeriods.currentPeriod)) {//if it's the current period
-				LocalDate ld = LocalDate.parse(TimesheetPeriods.currentPeriod, TimesheetPeriods.dtf);
-				fillTimesheetLists(ld, period, employeeID, CodeType.getType(daysCode), timesheet, timesheetDTO);
-				
-				timesheetDTO.setTimesheetsPeriods(usersTimesheetPeriod);
-								
-				return timesheetDTO;
-			}else if(usersTimesheetPeriod.contains(tp.getPrecedentPeriod(TimesheetPeriods.currentPeriod))) {//if it is the precedent period
-				System.out.println("Attention exécution de celle-ci aussi !");
-//				if it's signed and approved
-				if(savedSheetLineRepository.findByEmployeeIDAndPeriod(employeeID, tp.getPrecedentPeriod(TimesheetPeriods.currentPeriod)).isSigned()&&savedSheetLineRepository.findByEmployeeIDAndPeriod(employeeID, tp.getPrecedentPeriod(TimesheetPeriods.currentPeriod)).isApproved()) {
-					fillTimesheetLists(LocalDate.parse(TimesheetPeriods.currentPeriod, TimesheetPeriods.dtf), period, employeeID, CodeType.getType(daysCode), timesheet, timesheetDTO);
-					timesheetDTO.setTimesheetsPeriods(usersTimesheetPeriod);
-				}
-			}
+	public TimesheetState getTimesheetState(String employeeID) {
+		Employee employee=null;
+		Employee supervisor = null;
+		try {
+			employee=employeeRepository.findById(employeeID).get();
+			supervisor = employeeRepository.findById(employee.getSupervisorID()).get();
+		} catch (Exception e) {
+			supervisor = employeeRepository.findById(employeeID).get();
 		}
-		
-		return null;
+		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
+		tstate.setSupervisor(supervisor);
+		tstate.setVacationReport(getAllVacationDays(employeeID));
+		return tstate;
 	}
 	
-	public TimesheetDTO saveTimesheet(TimesheetDTO timesheetDTO) {
-		if(timesheetDTO.isBusinessDaysPresent()) {
-			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getBusinessDaysLine());
+	public void saveTimesheet(TimesheetDTO timesheetDTO) {
+		if(timesheetDTO.isRegularDaysPresent()) {
+			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getRegularDaysLine());
 		}
 		if(timesheetDTO.isHolidaysPresent()) {
 			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getHolidaysLine());
 		}
-		if(timesheetDTO.isWeekendDaysPresent()) {
-			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getWeekendDaysLine());
+		if(timesheetDTO.isVacationDaysPresent()) {
+			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getVacationDaysLine());
 		}
 		
-		if(savedSheetLineRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod())==null) {
-			UserSavedSheetLines userSavedSl=new UserSavedSheetLines(null, timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod(), false, false);
-			savedSheetLineRepository.save(userSavedSl);
-		}	
-		
-		return getTimesheet(timesheetDTO.getTimesheetPeriod(), timesheetDTO.getEmployee().getId());
+		if(timesheetSaverRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod())==null) {
+			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false);
+			timesheetSaverRepository.save(userSavedSl);			
+		}
 	}
 	public boolean updateTimesheet(TimesheetDTO timesheetDTO) {
-		if(timesheetDTO.isBusinessDaysPresent())sheetdayService.updateTimesheetLine(timesheetDTO.getTimesheet().getBusinessDaysLine());
-		if(timesheetDTO.isHolidaysPresent())sheetdayService.updateTimesheetLine(timesheetDTO.getTimesheet().getHolidaysLine());
-		if(timesheetDTO.isWeekendDaysPresent())sheetdayService.updateTimesheetLine(timesheetDTO.getTimesheet().getWeekendDaysLine());
+		
+		  if(timesheetDTO.isRegularDaysPresent())sheetdayService.updateTimesheetLine(timesheetDTO.getTimesheet().getRegularDaysLine());
+		  if(timesheetDTO.isHolidaysPresent())sheetdayService.updateTimesheetLine(timesheetDTO.getTimesheet().getHolidaysLine());
+		 
 		return true;
 	}
-	public boolean deleteTimesheetLine(String period, String employeeID, String daysCode) {
-		sheetdayService.deleteTimesheetLine(period, employeeID, daysCode);
-		LocalDate ld=LocalDate.parse(period, TimesheetPeriods.dtf);
-		System.out.println(sheetdayRepository.findBetweenDates(getStartingDate(ld), ld, employeeID).isEmpty());
-		if(sheetdayRepository.findBetweenDates(getStartingDate(ld), ld, employeeID).isEmpty()) {
-			savedSheetLineRepository.deleteByEmployeeIDAndPeriod(employeeID, period);
-		}
-		return true;		
-	}
+		
 	public boolean deleteTimesheet(String period, String employeeID) {
 		return sheetdayService.deleteTimesheet(period, employeeID);
+	}
+	public boolean signTimesheet(String period, String employeeID) {
+		sheetdayService.signTimesheet(period, employeeID);
+		return true;
+	}
+	public boolean approveTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
+		sheetdayService.approveTimesheet(period, employeeID, supervisorID, notification);
+		return true;
+	}
+	public boolean copApproveTimesheet(String period, String employeeID, NotificationRequest notification) {
+		TimesheetSaver tsaver=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, period);
+		tsaver.setApprovedByCOP(true);
+		tsaver.setSigned(true);
+		Employee sender=employeeRepository.findByPosition(Positions.COP);
+		notificationRepository.save(new Notification(null, sender, employeeID, notification.getMsgObject(), notification.getMsgBody(), Instant.now(), period, false,""));
+		return true;
+	}
+	public boolean rejectTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
+		sheetdayService.rejectTimesheet(period, employeeID, supervisorID, notification);
+		return true;
+	}
+	public List<USAIDProject>getAllProjects(){
+		return usaidProjectRepository.findAll();
 	}
 	
 	private LocalDate getStartingDate(LocalDate endDate) {
@@ -146,57 +215,137 @@ public class TimesheetService {
 		LocalDate ld1=LocalDate.of(year, month, beginingDay);
 		return ld1;		
 	}
-	private void fillTimesheetLists(LocalDate ld, String period, String employeeID, DayType dayType, Timesheet timesheet, TimesheetDTO timesheetDTO){
+	
+	////n get a new timesheet line
+	
+	private void fillTimesheetLists(LocalDate ld, String period, String employeeID, DayType dayType, Timesheet timesheet,String project, TimesheetDTO timesheetDTO){
+		List<String>allProjects=new ArrayList<>();
+		List<String>rdProjects=new ArrayList<>();
+		List<String>hdProjects=new ArrayList<>();
+		List<String>vdProjects=new ArrayList<>();
+		List<Sheetday>hold=new ArrayList<>();
+		List<Sheetday>regd=new ArrayList<>();
+		List<Sheetday>vacd=new ArrayList<>();
+		
+		//fill regular days and holidays
+		regd=sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.REGULAR_DAY);	
+		hold=sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.PUBLIC_HOLIDAY);	
+		vacd=sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.VACATION_DAY);	
+		
 		if(dayType.equals(DayType.PUBLIC_HOLIDAY)) {			
-			timesheet.setHolidaysLine(sheetdayService.getNewTimesheetLine(period, employeeID, CodeType.publicHoliday));
-			timesheet.setBusinessDaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.BUSINESS_DAY));
-			timesheet.setWeekendDaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.WEEKEND));
-		}else if(dayType.equals(DayType.WEEKEND)) {
-			timesheet.setWeekendDaysLine(sheetdayService.getNewTimesheetLine(period, employeeID, CodeType.weekend));
-			timesheet.setBusinessDaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.BUSINESS_DAY));
-			timesheet.setHolidaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.PUBLIC_HOLIDAY));
-		}else if(dayType.equals(DayType.BUSINESS_DAY)) {
-			timesheet.setBusinessDaysLine(sheetdayService.getNewTimesheetLine(period, employeeID, CodeType.businessDay));
-			timesheet.setHolidaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.PUBLIC_HOLIDAY));
-			timesheet.setWeekendDaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.WEEKEND));
+			hold.addAll(sheetdayService.getNewTimesheetLine(period, employeeID, CodeType.PUBLIC_HOLIDAY, project));				
+							
+		}else if(dayType.equals(DayType.REGULAR_DAY)) {
+			regd.addAll(sheetdayService.getNewTimesheetLine(period, employeeID, CodeType.REGULAR_DAYS, project));
+		}else if(dayType.equals(DayType.VACATION_DAY)) {
+			vacd.addAll(sheetdayService.getNewTimesheetLine(period, employeeID, CodeType.VACATION_DAYS, project));
 		}
-		Employee employee=employeeRepository.findById(employeeID).get();
+		//fill holidays projects
+		for(Sheetday sd:hold){
+			if(!hdProjects.contains(sd.getProjectName()))hdProjects.add(sd.getProjectName());					
+		}
+		//fill regulardays projects
+		for(Sheetday sd:regd){
+			if(!rdProjects.contains(sd.getProjectName()))rdProjects.add(sd.getProjectName());
+		}
+		//fill vacationdays projects
+		for(Sheetday sd:vacd){
+			if(!vdProjects.contains(sd.getProjectName()))vdProjects.add(sd.getProjectName());
+		}
+		Employee employee=employeeRepository.findById(employeeID).get();			
+		PeriodVars pv=new PeriodVars(ld);
+		List<LocalDate>ldList=new ArrayList<>();
+		// fill period dates and all projects names
+		for(int i=pv.getStart();i<=pv.getEnd();i++) {			
+			ldList.add(LocalDate.of(pv.getYear(), pv.getMonth(), i));
+		}
+		usaidProjectRepository.findAll().forEach(proj->{
+			allProjects.add(proj.getProjectName());
+		});
 		
-		if(timesheet.getBusinessDaysLine().isEmpty()) {
-			timesheetDTO.setBusinessDaysPresent(false);
-		}else timesheetDTO.setBusinessDaysPresent(true);
-		if(timesheet.getHolidaysLine().isEmpty()) {
-			timesheetDTO.setHolidaysPresent(false);
-		}else timesheetDTO.setHolidaysPresent(true);
-		if(timesheet.getWeekendDaysLine().isEmpty()) {
-			timesheetDTO.setWeekendDaysPresent(false);
-		}else timesheetDTO.setWeekendDaysPresent(true);
+		if(!regd.isEmpty())timesheetDTO.setRegularDaysPresent(true);
+		if(!hold.isEmpty())timesheetDTO.setHolidaysPresent(true);
+		if(!vacd.isEmpty())timesheetDTO.setVacationDaysPresent(true);
 		
-		timesheet.loadVerticalTotalHours();
+		timesheet.loadHoursByLine(regd, hold, vacd, rdProjects, hdProjects, vdProjects);
+		timesheet.loadVerticalTotalHours(regd, hold, vacd, ldList);
+		
+		timesheet.setHolidaysLine(hold);
+		timesheet.setRegularDaysLine(regd);
+		timesheet.setVacationDaysLine(vacd);
+		
+		timesheetDTO.setRdProjects(rdProjects);	
+		timesheetDTO.setHdProjects(hdProjects);		
+		timesheetDTO.setVdProjects(vdProjects);		
 		timesheetDTO.setEmployee(employee);
+		timesheetDTO.setPeriodDates(ldList);
+		timesheetDTO.setAllProjects(allProjects);
 		timesheetDTO.setTimesheet(timesheet);
 	}
 	private void fillTimesheet(LocalDate ld, Timesheet timesheet, TimesheetDTO timesheetDTO, String employeeID, List<String>userTimesheetPeriods) {
-		timesheet.setBusinessDaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.BUSINESS_DAY));
-		timesheet.setHolidaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.PUBLIC_HOLIDAY));
-		timesheet.setWeekendDaysLine(sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.WEEKEND));
+		List<String>rdProjects=new ArrayList<>();
+		List<String>hdProjects=new ArrayList<>();
+		List<String>vdProjects=new ArrayList<>();
+		List<String>allProjects=new ArrayList<>();
+	
+		List<Sheetday>regd=sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.REGULAR_DAY);
+		List<Sheetday>hold=sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.PUBLIC_HOLIDAY);
+		List<Sheetday>vacd=sheetdayRepository.findBetweenDatesAndDayType(getStartingDate(ld), ld, employeeID, DayType.VACATION_DAY);
 		
-		if(timesheet.getBusinessDaysLine().isEmpty()) {
-			timesheetDTO.setBusinessDaysPresent(false);
-		}else timesheetDTO.setBusinessDaysPresent(true);
-		if(timesheet.getHolidaysLine().isEmpty()) {
-			timesheetDTO.setHolidaysPresent(false);
-		}else timesheetDTO.setHolidaysPresent(true);
-		if(timesheet.getWeekendDaysLine().isEmpty()) {
-			timesheetDTO.setWeekendDaysPresent(false);
-		}else timesheetDTO.setWeekendDaysPresent(true);
+		//fill regulardaysProjects			
+		for(Sheetday sd:regd) {
+			if(!rdProjects.contains(sd.getProjectName()))rdProjects.add(sd.getProjectName());
+		}		
+		//fill holidaysProjects
+		for(Sheetday sd:hold){
+			if(!hdProjects.contains(sd.getProjectName()))hdProjects.add(sd.getProjectName());
+		}
+		//fill vacationdaysProjects
+		for(Sheetday sd:vacd){
+			if(!vdProjects.contains(sd.getProjectName()))vdProjects.add(sd.getProjectName());
+		}
+		//Fill period dates
+		PeriodVars pv=new PeriodVars(ld);
+		List<LocalDate>ldList=new ArrayList<>();
+		for(int i=pv.getStart();i<=pv.getEnd();i++) {			
+			ldList.add(LocalDate.of(pv.getYear(), pv.getMonth(), i));
+		}		
+		//fill all projects list
+		usaidProjectRepository.findAll().forEach(proj->{
+			allProjects.add(proj.getProjectName());
+		});
+		if(!hold.isEmpty())timesheetDTO.setHolidaysPresent(true);
+		if(!regd.isEmpty())timesheetDTO.setRegularDaysPresent(true);
+		if(!vacd.isEmpty())timesheetDTO.setVacationDaysPresent(true);
 		
-		timesheet.loadVerticalTotalHours();
-		
+		timesheet.loadVerticalTotalHours(regd, hold, vacd, ldList);
+		timesheet.loadHoursByLine(regd, hold, vacd, rdProjects, hdProjects, vdProjects);
+				
+		timesheet.setHolidaysLine(hold);
+		timesheet.setRegularDaysLine(regd);
+		timesheet.setVacationDaysLine(vacd);
 		Employee employee=employeeRepository.findById(employeeID).get();
+		timesheetDTO.setHdProjects(hdProjects);
+		timesheetDTO.setRdProjects(rdProjects);	
+		timesheetDTO.setVdProjects(vdProjects);
 		timesheetDTO.setEmployee(employee);
+		timesheetDTO.setPeriodDates(ldList);
+		timesheetDTO.setAllProjects(allProjects);
 		timesheetDTO.setTimesheetsPeriods(userTimesheetPeriods);
 		timesheetDTO.setTimesheet(timesheet);
+	}
+
+	private VacationReport getAllVacationDays(String employeeID) {
+		int totalHours = 0;
+		int daysTaken=0;
+		for(Sheetday sd:sheetdayRepository.findByEmployeeID(employeeID)) {
+			totalHours+=sd.getHours();
+		}
+		for(Vacation va:vacationRepository.findByEmployeeID(employeeID)) {
+			daysTaken+=va.getDaysTaken();
+		}
+		VacationReport vr=new VacationReport(totalHours, daysTaken);
+		return vr;		
 	}
 	
 

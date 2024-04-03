@@ -7,4 +7,5 @@ import com.timesheet.entities.AppUser;
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
 	public AppUser findByUsername(String username);
+	public void deleteByUsername(String username);
 }

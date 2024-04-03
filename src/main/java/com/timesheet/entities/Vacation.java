@@ -18,9 +18,8 @@ public class Vacation {
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String employeeID;
-	private int daysToken;
+	private int daysTaken;
 	private LocalDate localDate;
 	private transient int daysRemaining;
-	
-	
+		
 }

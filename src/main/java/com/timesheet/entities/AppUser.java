@@ -1,6 +1,7 @@
 package com.timesheet.entities;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class AppUser {
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
 	@ManyToMany(fetch = FetchType.EAGER)
-	private Set<AppRole>roles;
+	private Set<Role>roles;
 	@Column(unique = true)
 	private String mail; 
 	private String employeeID;
@@ -49,15 +50,16 @@ public class AppUser {
 	public void loadUserRoles() {
 //		remplissage des taxes pour l'affichage
 		userRoles=new ArrayList<>(); rolesNames=new ArrayList<>(); addedRolesNames=new ArrayList<>();
+		if(roles==null)roles=new HashSet<Role>();
 		for(RolesNames rn:RolesNames.values()) {
 			roles.forEach(rol->{
-				rolesNames.add(rol.getRoleName());
+				rolesNames.add(rol.getName());
 			});
 			//On l'ajoute si elle n'est pas encore été ajoutée dans la liste
 			if(!addedRolesNames.contains(rn.name())) {
 				if(rolesNames.contains(rn.name())) {//paid true or false
-					userRoles.add(UserRoles.builder().roleName(rn).hasRole(true).build());
-				}else userRoles.add(UserRoles.builder().roleName(rn).hasRole(false).build());
+					userRoles.add(UserRoles.builder().roleName(rn.name()).hasRole(true).build());
+				}else userRoles.add(UserRoles.builder().roleName(rn.name()).hasRole(false).build());
 			}			
 			if(!addedRolesNames.contains(rn.name()))addedRolesNames.add(rn.name());
 		}

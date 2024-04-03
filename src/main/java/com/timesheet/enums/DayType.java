@@ -1,5 +1,5 @@
 package com.timesheet.enums;
 
 public enum DayType {
-	BUSINESS_DAY, PUBLIC_HOLIDAY, WEEKEND
+	REGULAR_DAY, PUBLIC_HOLIDAY, VACATION_DAY
 }

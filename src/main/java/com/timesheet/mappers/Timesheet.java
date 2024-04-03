@@ -1,9 +1,11 @@
 package com.timesheet.mappers;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.timesheet.constants.PeriodVars;
 import com.timesheet.dtos.DayHours;
 import com.timesheet.entities.Sheetday;
 
@@ -13,83 +15,133 @@ import lombok.Data;
 public class Timesheet {
 	private String employeeID;
 	private String period;
-	private List<Sheetday>businessDaysLine;
+	private List<Sheetday>regularDaysLine;
 	private List<Sheetday>holidaysLine;
-	private List<Sheetday>weekendDaysLine;
-	private List<DayHours>verticalTotalHours;	
+	private List<Sheetday>vacationDaysLine;
+	private List<DayHours>verticalTotalHoursList;	
+	private Map<String, Integer>rdTotalHoursByLine;
+	private Map<String, Integer>hdTotalHoursByLine;
+	private Map<String, Integer>vdTotalHoursByLine;
 	private boolean signed;
+	private boolean signable;
 	private boolean approved;
-	private int businessTotalHours;
+	private boolean approvedByCOP;
+	private boolean approvableByCOP;
+	private boolean approvable;
+	private boolean ok;
+	private boolean rejected;
+	private boolean hasNewCreated;
+	private int regularTotalHours;
 	private int holidayTotalHours;
-	private int weekendTotalHours;
+	private int vacationTotalHours;
 	private int totalHours;
 	
 	
 	public Timesheet() {
-		this.businessDaysLine=new ArrayList<>();
+		this.regularDaysLine=new ArrayList<>();
 		this.holidaysLine=new ArrayList<>();
-		this.weekendDaysLine=new ArrayList<>();
-		this.verticalTotalHours=new ArrayList<>();
+		this.vacationDaysLine=new ArrayList<>();
+		this.verticalTotalHoursList=new ArrayList<>();
+		this.rdTotalHoursByLine=new HashMap<>();
+		this.hdTotalHoursByLine=new HashMap<>();
+		this.vdTotalHoursByLine=new HashMap<>();
 	}
 	
-	public Timesheet(String period, String employeeID, List<Sheetday>businessDaysLine,
-			List<Sheetday>holidaysLine, List<Sheetday>weekendDaysLine) {
+	public Timesheet(String period, String employeeID, List<Sheetday>rdLines,
+			List<Sheetday>hdLines, List<Sheetday>vdLines) {
 		this.employeeID=employeeID;
 		this.period=period;
-		this.businessDaysLine=businessDaysLine;
-		this.holidaysLine=holidaysLine;
-		this.weekendDaysLine=weekendDaysLine;
+		this.regularDaysLine=rdLines;
+		this.holidaysLine=hdLines;
+		this.vacationDaysLine=vdLines;
+		this.rdTotalHoursByLine=new HashMap<>();
+		this.hdTotalHoursByLine=new HashMap<>();
+		this.vdTotalHoursByLine=new HashMap<>();
 	}
 	
-	public int getBusinessTotalHours() {
-		businessTotalHours = 0;
-		if(!this.businessDaysLine.isEmpty()) {
-			for(Sheetday sd: this.businessDaysLine) {
-				businessTotalHours+=sd.getHours();
-			}
-		}
-		return this.businessTotalHours;
+	public int getRegularTotalHours() {
+		regularTotalHours = 0;
+		
+		  if(!this.regularDaysLine.isEmpty()) { for(Sheetday sd:
+		  this.regularDaysLine) { regularTotalHours+=sd.getHours(); } }
+		 
+		return this.regularTotalHours;
 	}
 	public int getHolidaysTotalHours() {
-		holidayTotalHours = 0;
-		if(!this.holidaysLine.isEmpty()) {
-			for(Sheetday sd: this.holidaysLine) {
-				this.holidayTotalHours+=sd.getHours();
-			}
-		}
+		holidayTotalHours = 0;		
+		  if(!this.holidaysLine.isEmpty()) { for(Sheetday sd: this.holidaysLine) {
+		  this.holidayTotalHours+=sd.getHours(); } }
+		 
 		return this.holidayTotalHours;
 	}
-	
-	public int getWeekendTotalHours() {
-		weekendTotalHours = 0;
-		if(!this.weekendDaysLine.isEmpty()) {
-			for(Sheetday sd: this.weekendDaysLine) {
-				this.weekendTotalHours+=sd.getHours();
-			}
-		}
-		return this.weekendTotalHours;
+	public int getVacationTotalHours() {
+		vacationTotalHours = 0;				
+		  if(!this.vacationDaysLine.isEmpty()) { for(Sheetday sd: this.vacationDaysLine) {
+		  this.vacationTotalHours+=sd.getHours(); } }
+		 
+		  System.out.println("nombre d'heures vac: "+vacationTotalHours);
+		return this.vacationTotalHours;
 	}
-	
+		
 	public int getTotalHours() {
 		totalHours = 0;
-		verticalTotalHours.forEach(vth->{
+		verticalTotalHoursList.forEach(vth->{
 			totalHours+=vth.getTotalHours();
 		});
 		return totalHours;
 	}
-	
-	public void loadVerticalTotalHours() {
-		verticalTotalHours=new ArrayList<>();
-		PeriodVars pv=new PeriodVars(period);
-		for(int i=0;i<pv.getPeriodLength();i++) {
-			DayHours dh=new DayHours();
-			int hours=0;
-			if(!businessDaysLine.isEmpty())hours+=businessDaysLine.get(i).getHours();
-			if(!holidaysLine.isEmpty())hours+=holidaysLine.get(i).getHours();
-			if(!weekendDaysLine.isEmpty())hours+=weekendDaysLine.get(i).getHours();
-
-			dh.setTotalHours(hours);
-			verticalTotalHours.add(dh);
-		}
+	public void loadHoursByLine(List<Sheetday>regularDaysLine, List<Sheetday>holidaysLine,
+			List<Sheetday>vacationDaysLine, List<String>rdProjects, List<String>hdProjects, List<String>vdProjects) {
+		this.rdTotalHoursByLine.clear();
+		this.hdTotalHoursByLine.clear();
+		this.vdTotalHoursByLine.clear();
+		
+		rdProjects.forEach(rdpName->{
+			int lineHours=0;
+			for(Sheetday rd:regularDaysLine) {
+				if(rd.getProjectName().equals(rdpName)) {
+					lineHours+=rd.getHours();
+				}
+			}
+			rdTotalHoursByLine.put(rdpName, lineHours);
+		});
+		hdProjects.forEach(hdpName->{
+			int lineHours=0;
+			for(Sheetday hd:holidaysLine) {
+				if(hd.getProjectName().equals(hdpName)) {
+					lineHours+=hd.getHours();
+				}
+			}
+			hdTotalHoursByLine.put(hdpName, lineHours);
+		});
+		vdProjects.forEach(vdpName->{
+			int lineHours=0;
+			for(Sheetday vd:vacationDaysLine) {
+				if(vd.getProjectName().equals(vdpName)) {
+					lineHours+=vd.getHours();
+				}
+			}
+			vdTotalHoursByLine.put(vdpName, lineHours);
+		});
+		
+	}
+	public void loadVerticalTotalHours(List<Sheetday>rdList, List<Sheetday>hdList, List<Sheetday>vdList, List<LocalDate>periodDates) {
+		
+		List<Sheetday>unifiedList=new ArrayList<>();
+		verticalTotalHoursList=new ArrayList<>();		
+		unifiedList.addAll(hdList);
+		unifiedList.addAll(rdList);
+		unifiedList.addAll(vdList);
+		
+		periodDates.forEach(date->{
+			int tHours=0;
+			for(Sheetday sd:unifiedList) {
+				if(sd.getDate().equals(date)) {
+					tHours+=sd.getHours();
+				}
+			}
+			verticalTotalHoursList.add(new DayHours(date,tHours));			
+		});	
+		
 	}
 }

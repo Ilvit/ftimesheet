@@ -1,9 +1,12 @@
 package com.timesheet.dtos;
 
+import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@Data
+@Data @AllArgsConstructor
 public class DayHours {
-	private String title;
+	private LocalDate date;
 	private int totalHours;
 }

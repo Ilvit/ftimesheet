@@ -23,7 +23,7 @@ public class UserDetailService implements UserDetailsService {
 		UserDetails userDetails=User
 				.withUsername(appUser.getUsername())
 				.password(appUser.getPassword())				
-				.authorities(appUser.getRoles().stream().map(role->role.getRoleName()).toArray(String[]::new))
+				.authorities(appUser.getRoles().stream().map(role->role.getName()).toArray(String[]::new))
 				.build();	
 		return userDetails;
 	}
