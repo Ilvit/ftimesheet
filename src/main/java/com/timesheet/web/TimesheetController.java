@@ -21,10 +21,12 @@ import com.timesheet.constants.TimesheetPeriods;
 import com.timesheet.dtos.NotificationResponseDTO;
 import com.timesheet.dtos.TimesheetDTO;
 import com.timesheet.dtos.TimesheetState;
+import com.timesheet.dtos.VacationDTO;
 import com.timesheet.entities.AppUser;
 import com.timesheet.entities.Employee;
 import com.timesheet.entities.Holiday;
 import com.timesheet.entities.Notification;
+import com.timesheet.entities.Vacation;
 import com.timesheet.mappers.NotificationRequest;
 import com.timesheet.services.AppUserService;
 import com.timesheet.services.EmployeeService;
@@ -32,6 +34,7 @@ import com.timesheet.services.HolidayService;
 import com.timesheet.services.NotificationService;
 import com.timesheet.services.SheetdayService;
 import com.timesheet.services.TimesheetService;
+import com.timesheet.services.VacationService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -49,6 +52,8 @@ public class TimesheetController {
 	private NotificationService notificationService;
 	@Autowired
 	private SheetdayService sheetdayService;
+	@Autowired
+	private VacationService vacationService;
 	
 	private TimesheetPeriods tp=new TimesheetPeriods();
 	
@@ -299,6 +304,33 @@ public class TimesheetController {
 	@GetMapping("/notifications/notread")
 	public int getNotRead(@RequestParam(name="eid")String employeeID){
 		return notificationService.getNotRead(employeeID);
+	}
+	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@GetMapping("/vacations")
+	public VacationDTO getAllVacations(@RequestParam(name="eid")String employeeID){
+		return vacationService.getAllVacations(employeeID);
+	}
+	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@GetMapping("/vacations/new")
+	public Vacation getNewVacation(@RequestParam(name="eid")String employeeID){
+		return new Vacation();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@GetMapping("/vacations/{id}")
+	public Vacation getVacation(@PathVariable Long id){
+		return vacationService.getVacation(id);
+	}
+	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PostMapping("/vacations/save")
+	public VacationDTO addNewVacation(@RequestBody Vacation vacation){
+		vacationService.saveVacation(vacation);
+		return getAllVacations(vacation.getEmployeeID());
+	}
+	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PutMapping("/vacations/update")
+	public VacationDTO updateVacation(@RequestBody Vacation vacation){
+		vacationService.updateVacation(vacation);
+		return getAllVacations(vacation.getEmployeeID());
 	}
 	
 }

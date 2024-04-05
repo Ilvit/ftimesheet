@@ -204,6 +204,19 @@ public class TimesheetService {
 		return usaidProjectRepository.findAll();
 	}
 	
+	public VacationReport getAllVacationDays(String employeeID) {
+		int totalHours = 0;
+		int daysTaken=0;
+		for(Sheetday sd:sheetdayRepository.findByEmployeeID(employeeID)) {
+			totalHours+=sd.getHours();
+		}
+		for(Vacation va:vacationRepository.findByEmployeeID(employeeID)) {
+			daysTaken+=va.getDaysTaken();
+		}
+		VacationReport vr=new VacationReport(totalHours, daysTaken);
+		return vr;		
+	}
+
 	private LocalDate getStartingDate(LocalDate endDate) {
 		int year=endDate.getYear();
 		int month=endDate.getMonthValue();
@@ -333,19 +346,6 @@ public class TimesheetService {
 		timesheetDTO.setAllProjects(allProjects);
 		timesheetDTO.setTimesheetsPeriods(userTimesheetPeriods);
 		timesheetDTO.setTimesheet(timesheet);
-	}
-
-	private VacationReport getAllVacationDays(String employeeID) {
-		int totalHours = 0;
-		int daysTaken=0;
-		for(Sheetday sd:sheetdayRepository.findByEmployeeID(employeeID)) {
-			totalHours+=sd.getHours();
-		}
-		for(Vacation va:vacationRepository.findByEmployeeID(employeeID)) {
-			daysTaken+=va.getDaysTaken();
-		}
-		VacationReport vr=new VacationReport(totalHours, daysTaken);
-		return vr;		
 	}
 	
 

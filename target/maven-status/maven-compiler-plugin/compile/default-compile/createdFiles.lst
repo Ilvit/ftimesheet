@@ -3,6 +3,7 @@ com\timesheet\Tests.class
 com\timesheet\mappers\PeriodState.class
 com\timesheet\security\SecurityConfig.class
 com\timesheet\repositories\HolidayRepository.class
+com\timesheet\dtos\VacationDTO.class
 com\timesheet\entities\TimesheetSaver.class
 com\timesheet\services\HolidayService.class
 com\timesheet\repositories\USAIDProjectRepository.class

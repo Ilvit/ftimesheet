@@ -26,6 +26,7 @@ E:\STS-WS\TimesheetF\src\main\java\com\timesheet\TimesheetServiceApplication.jav
 E:\STS-WS\TimesheetF\src\main\java\com\timesheet\repositories\AppUserRepository.java
 E:\STS-WS\TimesheetF\src\main\java\com\timesheet\repositories\EmployeeRepository.java
 E:\STS-WS\TimesheetF\src\main\java\com\timesheet\services\VacationService.java
+E:\STS-WS\TimesheetF\src\main\java\com\timesheet\dtos\VacationDTO.java
 E:\STS-WS\TimesheetF\src\main\java\com\timesheet\repositories\TimesheetSaverRepository.java
 E:\STS-WS\TimesheetF\src\main\java\com\timesheet\web\TimesheetController.java
 E:\STS-WS\TimesheetF\src\main\java\com\timesheet\entities\TimesheetSaver.java

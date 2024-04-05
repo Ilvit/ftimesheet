@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timesheet.dtos.VacationDTO;
 import com.timesheet.entities.Vacation;
+import com.timesheet.mappers.VacationReport;
+import com.timesheet.repositories.EmployeeRepository;
 import com.timesheet.repositories.VacationRepository;
 
 @Service
@@ -13,9 +16,16 @@ public class VacationService {
 
 	@Autowired
 	private VacationRepository vacationRepository;
+	@Autowired
+	private EmployeeRepository employeeRepository;	
+	@Autowired
+	private TimesheetService timesheetService;
 	
-	public Vacation takeNewVacation() {
-		return new Vacation();
+	public VacationDTO getAllVacations(String employeeID) {
+		VacationReport vr=timesheetService.getAllVacationDays(employeeID);
+		VacationDTO vdto=new VacationDTO(vacationRepository.findByEmployeeID(employeeID), vr);
+		vdto.setEmployee(employeeRepository.findById(employeeID).get());
+		return vdto;
 	}
 	public Vacation getVacation(Long id ) {
 		return vacationRepository.findById(id).get();
@@ -30,6 +40,6 @@ public class VacationService {
 		va.setDaysTaken(vacation.getDaysTaken());
 		va.setLocalDate(vacation.getLocalDate());
 		vacationRepository.save(va);
-		return true;
+		return true; 
 	}
 }
