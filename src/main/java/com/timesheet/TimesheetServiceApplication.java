@@ -1,6 +1,5 @@
 package com.timesheet;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
@@ -14,13 +13,13 @@ import com.timesheet.constants.TimesheetPeriods;
 import com.timesheet.entities.AppUser;
 import com.timesheet.entities.Role;
 import com.timesheet.entities.Sheetday;
-import com.timesheet.entities.USAIDProject;
 import com.timesheet.entities.TimesheetSaver;
+import com.timesheet.entities.USAIDProject;
 import com.timesheet.enums.Positions;
 import com.timesheet.enums.RolesNames;
 import com.timesheet.repositories.RoleRepository;
-import com.timesheet.repositories.USAIDProjectRepository;
 import com.timesheet.repositories.TimesheetSaverRepository;
+import com.timesheet.repositories.USAIDProjectRepository;
 import com.timesheet.services.AppUserService;
 import com.timesheet.services.EmployeeService;
 import com.timesheet.services.HolidayService;
@@ -41,9 +40,14 @@ public class TimesheetServiceApplication {
 			TimesheetSaverRepository savedSheetLineRepository, AppUserService appUserService, HolidayService holidayService) {
 		return  args->{
 			//Holidays
-			holidayService.addHoliday(LocalDate.parse("lundi_18-mars-2024", TimesheetPeriods.dtf), "Faradja's USAID-ULINZI day");
-			holidayService.addHoliday(LocalDate.parse("dimanche_30-juin-2024", TimesheetPeriods.dtf), "DRC independence day");
-			holidayService.addHoliday(LocalDate.parse("jeudi_01-août-2024", TimesheetPeriods.dtf), "DRC day of the dead");
+			/*
+			 * holidayService.addHoliday(LocalDate.parse("lundi_18-mars-2024",
+			 * TimesheetPeriods.dtf), "Faradja's USAID-ULINZI day");
+			 * holidayService.addHoliday(LocalDate.parse("dimanche_30-juin-2024",
+			 * TimesheetPeriods.dtf), "DRC independence day");
+			 * holidayService.addHoliday(LocalDate.parse("jeudi_01-août-2024",
+			 * TimesheetPeriods.dtf), "DRC day of the dead");
+			 */
 			//Projects
 			projectRepository.save(new USAIDProject(null,"USAID-ULINZI_2030"));
 			projectRepository.save(new USAIDProject(null,"USAID-EPIC"));
