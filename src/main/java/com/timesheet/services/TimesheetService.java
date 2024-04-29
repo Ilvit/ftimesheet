@@ -1,6 +1,5 @@
 package com.timesheet.services;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +14,15 @@ import com.timesheet.constants.TimesheetPeriods;
 import com.timesheet.dtos.TimesheetDTO;
 import com.timesheet.dtos.TimesheetState;
 import com.timesheet.entities.Employee;
-import com.timesheet.entities.Notification;
 import com.timesheet.entities.Sheetday;
 import com.timesheet.entities.TimesheetSaver;
 import com.timesheet.entities.USAIDProject;
 import com.timesheet.entities.Vacation;
 import com.timesheet.enums.DayType;
-import com.timesheet.enums.Positions;
-import com.timesheet.mappers.NotificationRequest;
-import com.timesheet.mappers.Timesheet;
-import com.timesheet.mappers.VacationReport;
+import com.timesheet.models.NotificationRequest;
+import com.timesheet.models.Timesheet;
+import com.timesheet.models.VacationReport;
 import com.timesheet.repositories.EmployeeRepository;
-import com.timesheet.repositories.NotificationRepository;
 import com.timesheet.repositories.SheetdayRepository;
 import com.timesheet.repositories.TimesheetSaverRepository;
 import com.timesheet.repositories.USAIDProjectRepository;
@@ -44,9 +40,7 @@ public class TimesheetService {
 	@Autowired
 	private TimesheetSaverRepository timesheetSaverRepository;
 	@Autowired
-	private USAIDProjectRepository usaidProjectRepository;	
-	@Autowired
-	private NotificationRepository notificationRepository;
+	private USAIDProjectRepository usaidProjectRepository;		
 	@Autowired
 	private VacationRepository vacationRepository;
 	
@@ -59,10 +53,10 @@ public class TimesheetService {
 		List<String>hdProjects=new ArrayList<>();
 		List<String>allProjects=new ArrayList<>();
 		usaidProjectRepository.findAll().forEach(proj->{
-			allProjects.add(proj.getProjectName());
+			allProjects.add(proj.getName());
 		});
 		TimesheetPeriods tp=new TimesheetPeriods();
-		timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, TimesheetPeriods.currentPeriod, false, false, false, false, false));
+		timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, TimesheetPeriods.currentPeriod, false, false, false, false, false, false));
 		TimesheetSaver ussl=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, tp.getPrecedentPeriod(tp.getCurrentPeriod()));
 		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
 		tstate.setSupervisor(supervisor);
@@ -102,16 +96,17 @@ public class TimesheetService {
 				if(tsaved.isApproved()) {
 					timesheet.setApproved(true);
 					timesheet.setApprovable(false);
-					timesheet.setApprovableByCOP(true);
+					timesheet.setApprovableByDAF(true);
 				}
 				if(tsaved.isRejected()) {//if it's not signed or it is rejected
 					timesheet.setSignable(true);
 					timesheet.setRejected(true);
 					timesheet.setSigned(false);
 				}					
-				if(tsaved.isApprovedByCOP()) {
-					timesheet.setApprovedByCOP(true);
-					timesheet.setApprovableByCOP(false);						timesheet.setSignable(false);
+				if(tsaved.isApprovedByDAF()) {
+					timesheet.setApprovedByDAF(true);
+					timesheet.setApprovableByDAF(false);						
+					timesheet.setSignable(false);
 				}
 				
 			}
@@ -165,7 +160,7 @@ public class TimesheetService {
 		}
 		
 		if(timesheetSaverRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod())==null) {
-			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false);
+			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false, false);
 			timesheetSaverRepository.save(userSavedSl);			
 		}
 	}
@@ -188,14 +183,7 @@ public class TimesheetService {
 		sheetdayService.approveTimesheet(period, employeeID, supervisorID, notification);
 		return true;
 	}
-	public boolean copApproveTimesheet(String period, String employeeID, NotificationRequest notification) {
-		TimesheetSaver tsaver=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, period);
-		tsaver.setApprovedByCOP(true);
-		tsaver.setSigned(true);
-		Employee sender=employeeRepository.findByPosition(Positions.COP);
-		notificationRepository.save(new Notification(null, sender, employeeID, notification.getMsgObject(), notification.getMsgBody(), Instant.now(), period, false,""));
-		return true;
-	}
+	
 	public boolean rejectTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
 		sheetdayService.rejectTimesheet(period, employeeID, supervisorID, notification);
 		return true;
@@ -214,7 +202,7 @@ public class TimesheetService {
 			daysTaken+=va.getDaysTaken();
 		}
 		VacationReport vr=new VacationReport(totalHours, daysTaken);
-		return vr;		
+		return vr;
 	}
 
 	private LocalDate getStartingDate(LocalDate endDate) {
@@ -273,7 +261,7 @@ public class TimesheetService {
 			ldList.add(LocalDate.of(pv.getYear(), pv.getMonth(), i));
 		}
 		usaidProjectRepository.findAll().forEach(proj->{
-			allProjects.add(proj.getProjectName());
+			allProjects.add(proj.getName());
 		});
 		
 		if(!regd.isEmpty())timesheetDTO.setRegularDaysPresent(true);
@@ -325,7 +313,7 @@ public class TimesheetService {
 		}		
 		//fill all projects list
 		usaidProjectRepository.findAll().forEach(proj->{
-			allProjects.add(proj.getProjectName());
+			allProjects.add(proj.getName());
 		});
 		if(!hold.isEmpty())timesheetDTO.setHolidaysPresent(true);
 		if(!regd.isEmpty())timesheetDTO.setRegularDaysPresent(true);

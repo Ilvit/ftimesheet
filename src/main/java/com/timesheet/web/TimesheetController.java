@@ -26,12 +26,16 @@ import com.timesheet.entities.AppUser;
 import com.timesheet.entities.Employee;
 import com.timesheet.entities.Holiday;
 import com.timesheet.entities.Notification;
+import com.timesheet.entities.USAIDProject;
 import com.timesheet.entities.Vacation;
-import com.timesheet.mappers.NotificationRequest;
+import com.timesheet.models.ConnectedUser;
+import com.timesheet.models.ConnectedUserModel;
+import com.timesheet.models.NotificationRequest;
 import com.timesheet.services.AppUserService;
 import com.timesheet.services.EmployeeService;
 import com.timesheet.services.HolidayService;
 import com.timesheet.services.NotificationService;
+import com.timesheet.services.ProjectService;
 import com.timesheet.services.SheetdayService;
 import com.timesheet.services.TimesheetService;
 import com.timesheet.services.VacationService;
@@ -54,6 +58,8 @@ public class TimesheetController {
 	private SheetdayService sheetdayService;
 	@Autowired
 	private VacationService vacationService;
+	@Autowired
+	private ProjectService projectService;
 	
 	private TimesheetPeriods tp=new TimesheetPeriods();
 	
@@ -118,15 +124,9 @@ public class TimesheetController {
 		return timesheetService.approveTimesheet(period, employeeID, supervisorID, notification);
 	}
 	@PreAuthorize("hasAuthority('SCOPE_SUPERVISOR')")
-	@PostMapping("/copapprove")
-	public boolean copApproveTimesheet(@RequestParam(name="eid") String employeeID, @RequestParam(name="per") String period, @RequestBody NotificationRequest notification) {
-		return timesheetService.copApproveTimesheet(period, employeeID, notification);
-	}
-	@PreAuthorize("hasAuthority('SCOPE_SUPERVISOR')")
 	@PostMapping("/reject")
 	public boolean rejectTimesheet(@RequestParam(name="eid") String employeeID, @RequestParam(name="sid") String supervisorID,
 			@RequestParam(name="per") String period, @RequestBody NotificationRequest notification) {
-		System.out.println("reject request, per: "+period+" employeeID: "+employeeID+" supervisorID: "+supervisorID);
 		return timesheetService.rejectTimesheet(period, employeeID, supervisorID, notification);
 	}
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
@@ -312,8 +312,14 @@ public class TimesheetController {
 	}
 	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
 	@GetMapping("/vacations/new")
-	public Vacation getNewVacation(@RequestParam(name="eid")String employeeID){
+	public Vacation getNewVacation(){
 		return new Vacation();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@DeleteMapping("/vacations/delete/{id}")
+	public VacationDTO deleteVacation(@PathVariable Long id, @RequestParam(name="eid")String employeeID){
+		vacationService.deleteVacation(id);
+		return vacationService.getAllVacations(employeeID);
 	}
 	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
 	@GetMapping("/vacations/{id}")
@@ -331,6 +337,61 @@ public class TimesheetController {
 	public VacationDTO updateVacation(@RequestBody Vacation vacation){
 		vacationService.updateVacation(vacation);
 		return getAllVacations(vacation.getEmployeeID());
+	}
+	
+	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@GetMapping("/projects")
+	public List<USAIDProject> getAllProjects(){
+		return projectService.getAllProjects();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@GetMapping("/projects/new")
+	public USAIDProject getNewProject(){
+		return new USAIDProject();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@GetMapping("/projects/{id}")
+	public USAIDProject getProject(@PathVariable Long id){
+		return projectService.getProject(id);
+	}
+	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@DeleteMapping("/projects/delete/{id}")
+	public List<USAIDProject> deleteProject(@PathVariable Long id){
+		projectService.deleteProject(id);
+		return projectService.getAllProjects();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PostMapping("/projects/save")
+	public List<USAIDProject> addNewProject(@RequestBody USAIDProject project){
+		projectService.addNewProject(project);
+		return projectService.getAllProjects();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PutMapping("/projects/update")
+	public List<USAIDProject> updateProject(@RequestBody USAIDProject project){
+		projectService.updateProject(project);
+		return projectService.getAllProjects();
+	}
+	//Connected users
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/connectedusers")
+	public List<ConnectedUser>getAllConnectedUsers(){
+		return ConnectedUserModel.getConnectedUsers();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/disconnect")
+	public List<ConnectedUser> disconnectUser(@RequestParam(value = "acct")String accessToken){
+		return ConnectedUserModel.disconnectUser(accessToken);
+	}
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/removedisconnectedusers")
+	public List<ConnectedUser> removeDisconnectedUsers(){
+		return ConnectedUserModel.removeDeconnectedUsers();
+	}
+	@PreAuthorize("hasAuthority('SCOPE_USER')")
+	@GetMapping("/logout")
+	public void logOut(@RequestParam(value = "acct")String accessToken){
+		ConnectedUserModel.logout(accessToken);
 	}
 	
 }

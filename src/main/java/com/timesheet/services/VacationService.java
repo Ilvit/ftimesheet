@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.timesheet.dtos.VacationDTO;
 import com.timesheet.entities.Vacation;
-import com.timesheet.mappers.VacationReport;
+import com.timesheet.models.VacationReport;
 import com.timesheet.repositories.EmployeeRepository;
 import com.timesheet.repositories.VacationRepository;
 
@@ -23,7 +23,7 @@ public class VacationService {
 	
 	public VacationDTO getAllVacations(String employeeID) {
 		VacationReport vr=timesheetService.getAllVacationDays(employeeID);
-		VacationDTO vdto=new VacationDTO(vacationRepository.findByEmployeeID(employeeID), vr);
+		VacationDTO vdto=new VacationDTO(vacationRepository.findByEmployeeID(employeeID), vr, employeeRepository.findById(employeeID).get());
 		vdto.setEmployee(employeeRepository.findById(employeeID).get());
 		return vdto;
 	}
@@ -31,14 +31,18 @@ public class VacationService {
 		return vacationRepository.findById(id).get();
 	}
 	public boolean saveVacation(Vacation vacation) {
-		vacationRepository.save(vacation);
+		if(vacation.getDaysTaken()>0)vacationRepository.save(vacation);
 		return false;
+	}
+	public boolean deleteVacation(Long id) {
+		vacationRepository.deleteById(id);
+		return true;
 	}
 	public boolean updateVacation(Vacation vacation) {
 		Vacation va=vacationRepository.findById(vacation.getId()).get();
 		va.setEmployeeID(vacation.getEmployeeID());
 		va.setDaysTaken(vacation.getDaysTaken());
-		va.setLocalDate(vacation.getLocalDate());
+		va.setStartDate(vacation.getStartDate());
 		vacationRepository.save(va);
 		return true; 
 	}

@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +34,8 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 public class SecurityConfig {
 	private String secreteKey="ieur@Mkfhei125gt4e7rldsioeèf@skédp^^dksefke1e35M5dmerlfjfkvkrtui";
 
+	@Autowired
+	private TsAuthFilter tsAuthFilter;
 	@Autowired
 	PasswordEncoder passwordEncoder;
 	@Autowired
@@ -58,7 +61,7 @@ public class SecurityConfig {
         		.cors(Customizer.withDefaults())
         		.authorizeHttpRequests(hr->hr.antMatchers("/authentication/login/**").permitAll())
         		.authorizeHttpRequests(hr->hr.antMatchers("http://localhost:8081/h2-console/**").permitAll())
-//        		.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+        		.addFilterBefore(tsAuthFilter, UsernamePasswordAuthenticationFilter.class)
         		.authorizeHttpRequests(hr->hr.anyRequest().authenticated())
 //        		.httpBasic(Customizer.withDefaults())        		
         		.oauth2ResourceServer(oa->oa.jwt(Customizer.withDefaults()))

@@ -13,5 +13,6 @@ import lombok.NoArgsConstructor;
 public class USAIDProject {
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private String projectName;
+	private String name;
+	private String description;
 }

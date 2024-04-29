@@ -19,7 +19,7 @@ public class Vacation {
 	private Long id;
 	private String employeeID;
 	private int daysTaken;
-	private LocalDate localDate;
+	private LocalDate startDate;
 	private transient int daysRemaining;
 		
 }

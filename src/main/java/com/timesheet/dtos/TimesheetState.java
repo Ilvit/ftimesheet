@@ -6,8 +6,8 @@ import java.util.List;
 import com.timesheet.constants.TimesheetPeriods;
 import com.timesheet.entities.Employee;
 import com.timesheet.entities.TimesheetSaver;
-import com.timesheet.mappers.PeriodState;
-import com.timesheet.mappers.VacationReport;
+import com.timesheet.models.PeriodState;
+import com.timesheet.models.VacationReport;
 
 import lombok.Data;
 
@@ -38,7 +38,7 @@ public class TimesheetState {
 				PeriodState ps=new PeriodState();
 				if(TimesheetPeriods.isPeriodFinished(tsaver.getPeriod()))ps.setFinished(true);
 				if(tsaver.isApproved())ps.setApproved(true);
-				if(tsaver.isApprovedByCOP())ps.setTimesheetOk(true);
+				if(tsaver.isApprovedByDAF())ps.setTimesheetOk(true);
 				ps.setPeriod(tsaver.getPeriod());
 				periodStates.add(ps);
 				usersPeriods.add(tsaver.getPeriod());

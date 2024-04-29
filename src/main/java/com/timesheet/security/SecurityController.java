@@ -14,11 +14,12 @@ import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timesheet.models.ConnectedUser;
+import com.timesheet.models.ConnectedUserModel;
 import com.timesheet.services.AppUserService;
 
 @RestController
@@ -31,11 +32,7 @@ public class SecurityController {
 	private JwtEncoder jwtEncoder;
 	@Autowired
 	private AppUserService appUserService;
-	
-	@GetMapping("/profile")
-	public Authentication getAuthentication(Authentication authentication) {
-		return authentication;
-	}
+		
 	
 	@PostMapping("/login")
 	public Map<String, String>login(String username, String password){
@@ -43,7 +40,6 @@ public class SecurityController {
 		Instant instant=Instant.now();
 		String scope=authentication.getAuthorities().stream().map(a->a.getAuthority()).collect(Collectors.joining(" "));	
 		String employeeID=appUserService.getEmployeeID(username);
-		System.out.println("getEmployeeID: "+employeeID);
 		JwtClaimsSet jwtClaimsSet=JwtClaimsSet.builder()
 				.issuedAt(instant)
 				.expiresAt(instant.plus(30, ChronoUnit.MINUTES))
@@ -55,6 +51,7 @@ public class SecurityController {
 			JwsHeader.with(MacAlgorithm.HS512).build(), jwtClaimsSet
 		);		
 		String jwt=jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
+		ConnectedUserModel.addConnectedUser(new ConnectedUser(username, jwt, true));
 		return Map.of("access-token",jwt); 
 	}
 	

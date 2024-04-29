@@ -18,7 +18,8 @@ import com.timesheet.entities.Notification;
 import com.timesheet.entities.Sheetday;
 import com.timesheet.entities.TimesheetSaver;
 import com.timesheet.enums.Positions;
-import com.timesheet.mappers.NotificationRequest;
+import com.timesheet.models.NotificationRequest;
+import com.timesheet.models.TimesheetMail;
 import com.timesheet.repositories.EmployeeRepository;
 import com.timesheet.repositories.NotificationRepository;
 import com.timesheet.repositories.SheetdayRepository;
@@ -38,7 +39,8 @@ public class SheetdayService {
 	private NotificationRepository notificationRepository;
 	@Autowired
 	private EmployeeRepository employeeRepository;
-		
+	@Autowired
+	private TimesheetMailService mailService;		
 		
 	public List<Sheetday>getNewTimesheetLine(String period, String employeeID, String dayCode, String project){
 		
@@ -129,9 +131,14 @@ public class SheetdayService {
 		ussl.setRejected(false);
 		timesheetSaverRepository.save(ussl);
 		
-		String supervisorID=employeeRepository.findById(employeeID).get().getSupervisorID();
 		Employee sender=employeeRepository.findById(employeeID).get();
-		notificationRepository.save(new Notification(null, sender, supervisorID, "Timesheet signed", "My timesheet is signed. May you approve it please?", Instant.now(), period, false,""));
+		Employee supervisor=employeeRepository.findById(sender.getSupervisorID()).get();		
+		
+		notificationRepository.save(new Notification(null, sender, supervisor.getId(), "Timesheet signed", "My timesheet is signed. May you approve it please?", Instant.now(), period, false,""));
+		
+		new Thread(()->{			
+			mailService.sendMail(supervisor.getMail(), new TimesheetMail("Timesheet signed",supervisor.getPosition()+" "+supervisor.getNickName()+" "+supervisor.getName()+" has signed his timesheet. Please see it into your timesheet notifications"));
+		}).start();
 		
 		return true;
 	}
@@ -148,18 +155,22 @@ public class SheetdayService {
 			});
 		}			
 		TimesheetSaver ussl=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, period);
+		Employee sender=employeeRepository.findById(supervisorID).get();
+		Employee employee=employeeRepository.findById(employeeID).get();
+		Employee daf=employeeRepository.findByPosition(Positions.DAF);
+		
 		ussl.setSigned(true);
 		ussl.setRejected(false);
 		ussl.setApproved(true);
+		if(sender.equals(daf)) ussl.setApprovedByDAF(true);
+		
 		timesheetSaverRepository.save(ussl);
 		new Thread(()->{
-			Employee sender=employeeRepository.findById(supervisorID).get();
-			Employee employee=employeeRepository.findById(employeeID).get();
-			String COPID=employeeRepository.findByPosition(Positions.COP).getId();
 			notificationRepository.save(new Notification(null, sender, employeeID, notification.getMsgObject(), notification.getMsgBody(), Instant.now(), period, false, ""));
-			notificationRepository.save(new Notification(null, sender, COPID, employee.getPostName()+" "+employee.getNickName()+" timesheet", "I'm sending you "+employee.getName()+" "+employee.getPostName()+" "+employee.getNickName()+"'s timesheet which i approved", Instant.now(), period, false, employeeID));
+			if(!sender.equals(daf))notificationRepository.save(new Notification(null, sender, daf.getId(), employee.getPostName()+" "+employee.getNickName()+" timesheet", "I'm sending you "+employee.getName()+" "+employee.getPostName()+" "+employee.getNickName()+"'s timesheet which i approved", Instant.now(), period, false, employeeID));			
+			if(!sender.equals(daf))mailService.sendMail(daf.getMail(), new TimesheetMail("Timesheet approved","The "+sender.getPosition()+" "+sender.getName()+" sent you "+employee.getName()+" "+employee.getPostName()+" "+employee.getNickName()+"'s timesheet which he has approved. Please look at your notifications"));
 		}).start();
-		
+				
 		return true;
 	}
 	public boolean rejectTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
@@ -175,15 +186,17 @@ public class SheetdayService {
 				sheetdayRepository.save(sd);
 			});
 		}			
-		TimesheetSaver ussl=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, period);
-		ussl.setSigned(false);
-		ussl.setRejected(true);
-		ussl.setApproved(false);
-		ussl.setApprovedByCOP(false);
-		timesheetSaverRepository.save(ussl);	
+		TimesheetSaver tsaver=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, period);
+		tsaver.setSigned(false);
+		tsaver.setRejected(true);
+		tsaver.setApproved(false);
+		tsaver.setApprovedByDAF(false);
+		timesheetSaverRepository.save(tsaver);	
 		new Thread(()->{
 			Employee sender=employeeRepository.findById(supervisorID).get();
-			notificationRepository.save(new Notification(null, sender, employeeID, notification.getMsgObject(), notification.getMsgBody(), Instant.now(), period, false, ""));
+			String employeeMail=employeeRepository.findById(employeeID).get().getMail();
+			notificationRepository.save(new Notification(null, sender, employeeID, notification.getMsgObject(), notification.getMsgBody(), Instant.now(), period, false, ""));			
+			mailService.sendMail(employeeMail, new TimesheetMail("Timesheet rejected","Your timesheet is not approved. Please see the amendments into your timesheet notifications"));
 		}).start();
 		
 		return true;

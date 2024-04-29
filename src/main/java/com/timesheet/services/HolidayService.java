@@ -47,7 +47,13 @@ public class HolidayService implements HolidayInterface {
 	public boolean updateHoliday(Long id, LocalDate newDate, String description) {
 		Holiday hd=holidayRepository.findById(id).get();
 		hd.setDate(newDate);
-		if(!description.isEmpty())hd.setDescription(description);		
+		if(!description.isEmpty())hd.setDescription(description);	
+		new Thread(()->{
+			sheetdayRepository.findByDate(newDate).forEach(sd->{
+				sd.setHoliday(true);
+				sheetdayRepository.save(sd);
+			});
+		}).start();
 		return holidayRepository.save(hd)!=null;
 	}
 

@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.timesheet.entities.Employee;
 import com.timesheet.entities.Vacation;
-import com.timesheet.mappers.VacationReport;
+import com.timesheet.models.VacationReport;
 
 import lombok.Data;
 
@@ -14,7 +14,8 @@ public class VacationDTO {
 	private VacationReport vacationReport;
 	private Employee employee;
 	
-	public VacationDTO(List<Vacation>vacations, VacationReport vacationReport) {
+	public VacationDTO(List<Vacation>vacations, VacationReport vacationReport, Employee employee) {
+		this.employee=employee;
 		this.vacations=vacations;
 		this.vacationReport=vacationReport;
 	}

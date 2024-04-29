@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.timesheet.entities.Employee;
-import com.timesheet.mappers.PeriodState;
-import com.timesheet.mappers.Timesheet;
+import com.timesheet.models.PeriodState;
+import com.timesheet.models.Timesheet;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
