@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor @AllArgsConstructor
 public class Employee {
-	@Id
+	@Id @Column(length = 10)
 	private String id;
 	private String name;
 	private String postName;

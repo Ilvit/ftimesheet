@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timesheet.entities.AppUser;
+import com.timesheet.entities.Employee;
 import com.timesheet.repositories.AppUserRepository;
+import com.timesheet.repositories.EmployeeRepository;
 import com.timesheet.repositories.RoleRepository;
 @Service
 @Transactional
@@ -18,6 +20,8 @@ public class AppUserService implements AppUserserviceInterface {
 	private RoleRepository roleRepository;
 	@Autowired
 	private AppUserRepository appUserRepository;
+	@Autowired
+	private EmployeeRepository employeeRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
@@ -47,21 +51,25 @@ public class AppUserService implements AppUserserviceInterface {
 
 	@Override
 	public void saveUser(AppUser user) {
+		Employee employee=employeeRepository.findById(user.getEmployeeID()).get();
 		AppUser appUser=AppUser.builder()
 				.username(user.getUsername())
 				.password(passwordEncoder.encode(user.getPassword()))
-				.mail(user.getMail())
-				.employeeID(user.getEmployeeID())
+				.mail(employee.getMail())
+				.employeeID(employee.getId())
+				.supervisorID(employee.getSupervisorID())
 				.build();
 		appUserRepository.save(appUser);
 	}
 
 	@Override
-	public void updateUser(String username, AppUser user) {
-		AppUser appUser=appUserRepository.findByUsername(username);
+	public void updateUser(AppUser user) {
+		AppUser appUser=appUserRepository.findByEmployeeID(user.getEmployeeID());
+		Employee employee=employeeRepository.findById(appUser.getEmployeeID()).get();
 		appUser.setUsername(user.getUsername());
-		appUser.setEmployeeID(user.getEmployeeID());
-		appUser.setMail(user.getMail());
+		appUser.setEmployeeID(employee.getId());
+		appUser.setSupervisorID(employee.getSupervisorID());
+		appUser.setMail(employee.getMail());
 		if(!user.getPassword().isEmpty() && user.getPassword().length()>3)appUser.setPassword(passwordEncoder.encode(user.getPassword()));
 		appUser.getRoles().clear();
 		user.getUserRoles().forEach(ur->{
@@ -101,6 +109,11 @@ public class AppUserService implements AppUserserviceInterface {
 	}
 	public String getEmployeeID(String username) {
 		return appUserRepository.findByUsername(username).getEmployeeID();
+	}
+
+	@Override
+	public AppUser findByEmployeeID(String employeeID) {
+		return appUserRepository.findByEmployeeID(employeeID);
 	}
 
 }

@@ -234,7 +234,7 @@ public class TimesheetController {
 	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@PutMapping("/users/update")
 	public List<AppUser>updateUser(@RequestBody AppUser user){
-		appUserService.updateUser(user.getUsername(), user);
+		appUserService.updateUser( user);
 		return appUserService.getAllAppUsers();
 	}
 	
@@ -269,8 +269,8 @@ public class TimesheetController {
 	}
 	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@PutMapping("/employees/update")
-	public List<Employee>updateEmployee(@RequestBody Employee employee){
-		employeeService.updateEmployee(employee);
+	public List<Employee>updateEmployee(@RequestBody Employee employeeRequestDTO){
+		employeeService.updateEmployee(employeeRequestDTO);
 		return employeeService.getAllEmployees();
 	}	
 	//Message

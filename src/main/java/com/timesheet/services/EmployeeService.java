@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timesheet.entities.AppUser;
 import com.timesheet.entities.Employee;
 import com.timesheet.enums.Positions;
+import com.timesheet.repositories.AppUserRepository;
 import com.timesheet.repositories.EmployeeRepository;
 
 @Service
@@ -16,6 +18,8 @@ import com.timesheet.repositories.EmployeeRepository;
 public class EmployeeService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
+	@Autowired
+	private AppUserRepository appUserRepository;
 		
 	public Employee getEmployee(String employeeID) {
 		return employeeRepository.findById(employeeID).get();
@@ -63,6 +67,11 @@ public class EmployeeService {
 	}
 	public boolean updateEmployee(Employee employeeRequestDTO) {
 		Employee employee=employeeRepository.findById(employeeRequestDTO.getId()).get();
+		new Thread(()->{
+			AppUser au=appUserRepository.findByEmployeeID(employee.getId());
+			au.setSupervisorID(employee.getSupervisorID());
+			appUserRepository.save(au);
+		}).start();
 		employee.setName(employeeRequestDTO.getName());
 		employee.setPostName(employeeRequestDTO.getPostName());
 		employee.setNickName(employeeRequestDTO.getNickName());

@@ -37,6 +37,7 @@ public class AppUser {
 	@Column(unique = true)
 	private String mail; 
 	private String employeeID;
+	private String supervisorID;
 	private transient List<UserRoles>userRoles;
 	private transient List<String>rolesNames;
 	private transient List<String>addedRolesNames;

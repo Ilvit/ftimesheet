@@ -10,8 +10,9 @@ public interface AppUserserviceInterface {
 	public void addRolesToUser(String username, List<String> rolesNames);
 	public void removeRoleToUser(String username, String roleName);
 	public void saveUser(AppUser user);
-	public void updateUser(String username, AppUser user);
+	public void updateUser(AppUser user);
 	public void deleteUser(String username);
+	public AppUser findByEmployeeID(String employeeID);
 	public AppUser getUser(String username);
 	public AppUser getUser(Long userId);
 	public List<AppUser> getAllAppUsers();	
