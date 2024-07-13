@@ -2,6 +2,7 @@ package com.timesheet.services;
 
 import java.util.List;
 
+import com.timesheet.dtos.UsersDTO;
 import com.timesheet.entities.AppUser;
 
 public interface AppUserserviceInterface {
@@ -15,5 +16,5 @@ public interface AppUserserviceInterface {
 	public AppUser findByEmployeeID(String employeeID);
 	public AppUser getUser(String username);
 	public AppUser getUser(Long userId);
-	public List<AppUser> getAllAppUsers();	
+	public UsersDTO getAllAppUsers();	
 }

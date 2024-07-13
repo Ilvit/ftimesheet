@@ -45,8 +45,8 @@ public class TimesheetService {
 	private VacationRepository vacationRepository;
 	
 	public TimesheetDTO getNewTimesheet(String employeeID) {		
-		Employee employee=employeeRepository.findById(employeeID).get();
-		Employee supervisor=employeeRepository.findById(employee.getSupervisorID()).get();
+		Employee employee=employeeRepository.findByEmployeeID(employeeID);
+		Employee supervisor=employeeRepository.findByEmployeeID(employee.getSupervisorID());
 		TimesheetDTO timesheetDTO=new TimesheetDTO(new Timesheet());
 		
 		List<String>rdProjects=new ArrayList<>();
@@ -79,7 +79,7 @@ public class TimesheetService {
 	}
 	
 	public TimesheetDTO getTimesheet(String period, String employeeID) {		
-		TimesheetState tstate=new TimesheetState(period, employeeRepository.findById(employeeID).get(), timesheetSaverRepository.findByEmployeeID(employeeID));
+		TimesheetState tstate=new TimesheetState(period, employeeRepository.findByEmployeeID(employeeID), timesheetSaverRepository.findByEmployeeID(employeeID));
 		TimesheetDTO timesheetDTO=new TimesheetDTO();
 		Timesheet timesheet=new Timesheet();
 		
@@ -121,7 +121,7 @@ public class TimesheetService {
 	public TimesheetDTO getNewTimesheetLine(String period, String employeeID, String daysCode, String project) {
 		TimesheetDTO timesheetDTO=new TimesheetDTO();
 		Timesheet timesheet=new Timesheet();
-		TimesheetState tstate=new TimesheetState(period, employeeRepository.findById(employeeID).get(), timesheetSaverRepository.findByEmployeeID(employeeID));
+		TimesheetState tstate=new TimesheetState(period, employeeRepository.findByEmployeeID(employeeID), timesheetSaverRepository.findByEmployeeID(employeeID));
 		
 		if(tstate.isTimesheetExists()) {//if a timesheet exists
 			fillTimesheetLists(LocalDate.parse(period, TimesheetPeriods.dtf), period, employeeID, CodeType.getType(daysCode), timesheet, project, timesheetDTO);
@@ -137,10 +137,10 @@ public class TimesheetService {
 		Employee employee=null;
 		Employee supervisor = null;
 		try {
-			employee=employeeRepository.findById(employeeID).get();
-			supervisor = employeeRepository.findById(employee.getSupervisorID()).get();
+			employee=employeeRepository.findByEmployeeID(employeeID);
+			supervisor = employeeRepository.findByEmployeeID(employee.getSupervisorID());
 		} catch (Exception e) {
-			supervisor = employeeRepository.findById(employeeID).get();
+			supervisor = employeeRepository.findByEmployeeID(employeeID);
 		}
 		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
 		tstate.setSupervisor(supervisor);
@@ -159,8 +159,8 @@ public class TimesheetService {
 			sheetdayService.saveTimesheetLine(timesheetDTO.getTimesheet().getVacationDaysLine());
 		}
 		
-		if(timesheetSaverRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod())==null) {
-			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getId(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false, false);
+		if(timesheetSaverRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getEmployeeID(), timesheetDTO.getTimesheetPeriod())==null) {
+			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getEmployeeID(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false, false);
 			timesheetSaverRepository.save(userSavedSl);			
 		}
 	}
@@ -253,7 +253,7 @@ public class TimesheetService {
 		for(Sheetday sd:vacd){
 			if(!vdProjects.contains(sd.getProjectName()))vdProjects.add(sd.getProjectName());
 		}
-		Employee employee=employeeRepository.findById(employeeID).get();			
+		Employee employee=employeeRepository.findByEmployeeID(employeeID);			
 		PeriodVars pv=new PeriodVars(ld);
 		List<LocalDate>ldList=new ArrayList<>();
 		// fill period dates and all projects names
@@ -325,7 +325,7 @@ public class TimesheetService {
 		timesheet.setHolidaysLine(hold);
 		timesheet.setRegularDaysLine(regd);
 		timesheet.setVacationDaysLine(vacd);
-		Employee employee=employeeRepository.findById(employeeID).get();
+		Employee employee=employeeRepository.findByEmployeeID(employeeID);
 		timesheetDTO.setHdProjects(hdProjects);
 		timesheetDTO.setRdProjects(rdProjects);	
 		timesheetDTO.setVdProjects(vdProjects);

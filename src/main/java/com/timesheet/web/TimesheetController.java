@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.timesheet.constants.CodeType;
 import com.timesheet.constants.TimesheetPeriods;
+import com.timesheet.dtos.EmployeeDTO;
 import com.timesheet.dtos.NotificationResponseDTO;
 import com.timesheet.dtos.TimesheetDTO;
 import com.timesheet.dtos.TimesheetState;
+import com.timesheet.dtos.UsersDTO;
 import com.timesheet.dtos.VacationDTO;
 import com.timesheet.entities.AppUser;
 import com.timesheet.entities.Employee;
@@ -109,7 +111,7 @@ public class TimesheetController {
 		}
 		timesheetDTO.setTimesheetPeriod(period);
 		timesheetService.saveTimesheet(timesheetDTO);
-		return timesheetService.getTimesheet(period, timesheetDTO.getEmployee().getId());
+		return timesheetService.getTimesheet(period, timesheetDTO.getEmployee().getEmployeeID());
 	}
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
 	@GetMapping("/sign")
@@ -167,35 +169,35 @@ public class TimesheetController {
 	
 	//Holidays
 	
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/holidays")
 	public List<Holiday>getHolidays(){
 		return holidayService.getHolidays();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/holidays/{id}")
 	public Holiday getHoliday(@PathVariable Long id){
 		return holidayService.getHoliday(id);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/holidays/new")
 	public Holiday getNewHoliday(){
-		return new Holiday(null,LocalDate.now(),"describe");
+		return new Holiday(null,LocalDate.now(),"");
 	}
 	
-	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PostMapping("/holidays/save")
 	public List<Holiday>saveHoliday(@RequestBody Holiday holiday){
 		holidayService.saveHoliday(holiday);
 		return holidayService.getHolidays();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PostMapping("/holidays/delete")
 	public List<Holiday>deleteHoliday(@RequestBody Holiday holiday){
 		holidayService.removeHoliday(holiday.getDate());
 		return holidayService.getHolidays();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PutMapping("/holidays/update")
 	public List<Holiday>updateHoliday(@RequestBody Holiday holiday){
 		holidayService.updateHoliday(holiday.getId(), holiday.getDate(), holiday.getDescription());
@@ -204,72 +206,72 @@ public class TimesheetController {
 	
 	//Users
 	
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@GetMapping("/users/user")
 	public AppUser getAppUser(@RequestParam(name="un") String username){
 		return appUserService.getUser(username);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@GetMapping("/users")
-	public List<AppUser>getAllUsers(){
+	public UsersDTO getAllUsers(){
 		return appUserService.getAllAppUsers();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@GetMapping("/users/new")
 	public AppUser getNewAppUser(){
 		return new AppUser();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@PostMapping("/users/save")
-	public List<AppUser>saveUser(@RequestBody AppUser user){
+	public UsersDTO saveUser(@RequestBody AppUser user){
 		appUserService.saveUser(user);
 		return appUserService.getAllAppUsers();
 	}
 	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@DeleteMapping("/users/delete")
-	public List<AppUser>deleteUser(@RequestParam(name="un") String username){
+	public UsersDTO deleteUser(@RequestParam(name="un") String username){
 		appUserService.deleteUser(username);
 		return appUserService.getAllAppUsers();
-	}
+	} 
 	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@PutMapping("/users/update")
-	public List<AppUser>updateUser(@RequestBody AppUser user){
+	public UsersDTO updateUser(@RequestBody AppUser user){
 		appUserService.updateUser( user);
 		return appUserService.getAllAppUsers();
 	}
 	
 	//Employees
 	
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/employees/employee")
 	public Employee getEmployee(@RequestParam(name="eid") String employeeID){
 		return employeeService.getEmployee(employeeID);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/employees")
-	public List<Employee>getAllEmployees(){
+	public EmployeeDTO getAllEmployees(){
 		return employeeService.getAllEmployees();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/employees/new")
 	public Employee getNewEmployee(){
 		return new Employee();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PostMapping("/employees/save")
-	public List<Employee>saveEmployee(@RequestBody Employee employee){
+	public EmployeeDTO saveEmployee(@RequestBody Employee employee){
 		employeeService.addNewEmployee(employee);
 		return employeeService.getAllEmployees();
 	}
 	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@DeleteMapping("/employees/delete")
-	public List<Employee>deleteEmployee(@RequestParam(name="eid") String employeeID){
+	public EmployeeDTO deleteEmployee(@RequestParam(name="eid") String employeeID){
 		employeeService.deleteEmployee(employeeID);
 		return employeeService.getAllEmployees();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PutMapping("/employees/update")
-	public List<Employee>updateEmployee(@RequestBody Employee employeeRequestDTO){
+	public EmployeeDTO updateEmployee(@RequestBody Employee employeeRequestDTO){
 		employeeService.updateEmployee(employeeRequestDTO);
 		return employeeService.getAllEmployees();
 	}	
@@ -305,68 +307,73 @@ public class TimesheetController {
 	public int getNotRead(@RequestParam(name="eid")String employeeID){
 		return notificationService.getNotRead(employeeID);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+	
+//	vacations
+	
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/vacations")
 	public VacationDTO getAllVacations(@RequestParam(name="eid")String employeeID){
 		return vacationService.getAllVacations(employeeID);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/vacations/new")
 	public Vacation getNewVacation(){
 		return new Vacation();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@DeleteMapping("/vacations/delete/{id}")
 	public VacationDTO deleteVacation(@PathVariable Long id, @RequestParam(name="eid")String employeeID){
 		vacationService.deleteVacation(id);
 		return vacationService.getAllVacations(employeeID);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@GetMapping("/vacations/{id}")
 	public Vacation getVacation(@PathVariable Long id){
 		return vacationService.getVacation(id);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PostMapping("/vacations/save")
 	public VacationDTO addNewVacation(@RequestBody Vacation vacation){
 		vacationService.saveVacation(vacation);
 		return getAllVacations(vacation.getEmployeeID());
 	}
-	@PreAuthorize("hasAuthority('SCOPE_USER_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_HR')")
 	@PutMapping("/vacations/update")
 	public VacationDTO updateVacation(@RequestBody Vacation vacation){
 		vacationService.updateVacation(vacation);
 		return getAllVacations(vacation.getEmployeeID());
 	}
 	
-	@PreAuthorize("hasAuthority('SCOPE_USER_READER')")
+//	Projects
+	
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@GetMapping("/projects")
 	public List<USAIDProject> getAllProjects(){
 		return projectService.getAllProjects();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@GetMapping("/projects/new")
 	public USAIDProject getNewProject(){
 		return new USAIDProject();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@GetMapping("/projects/{id}")
 	public USAIDProject getProject(@PathVariable Long id){
 		return projectService.getProject(id);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@DeleteMapping("/projects/delete/{id}")
 	public List<USAIDProject> deleteProject(@PathVariable Long id){
 		projectService.deleteProject(id);
 		return projectService.getAllProjects();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@PostMapping("/projects/save")
 	public List<USAIDProject> addNewProject(@RequestBody USAIDProject project){
 		projectService.addNewProject(project);
 		return projectService.getAllProjects();
 	}
-	@PreAuthorize("hasAuthority('SCOPE_PROJECT_MANAGER')")
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 	@PutMapping("/projects/update")
 	public List<USAIDProject> updateProject(@RequestBody USAIDProject project){
 		projectService.updateProject(project);

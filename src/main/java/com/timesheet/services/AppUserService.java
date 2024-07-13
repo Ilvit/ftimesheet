@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timesheet.dtos.UsersDTO;
 import com.timesheet.entities.AppUser;
 import com.timesheet.entities.Employee;
 import com.timesheet.repositories.AppUserRepository;
@@ -51,12 +52,12 @@ public class AppUserService implements AppUserserviceInterface {
 
 	@Override
 	public void saveUser(AppUser user) {
-		Employee employee=employeeRepository.findById(user.getEmployeeID()).get();
+		Employee employee=employeeRepository.findByEmployeeID(user.getEmployeeID());
 		AppUser appUser=AppUser.builder()
 				.username(user.getUsername())
 				.password(passwordEncoder.encode(user.getPassword()))
 				.mail(employee.getMail())
-				.employeeID(employee.getId())
+				.employeeID(employee.getEmployeeID())
 				.supervisorID(employee.getSupervisorID())
 				.build();
 		appUserRepository.save(appUser);
@@ -65,9 +66,9 @@ public class AppUserService implements AppUserserviceInterface {
 	@Override
 	public void updateUser(AppUser user) {
 		AppUser appUser=appUserRepository.findByEmployeeID(user.getEmployeeID());
-		Employee employee=employeeRepository.findById(appUser.getEmployeeID()).get();
+		Employee employee=employeeRepository.findByEmployeeID(appUser.getEmployeeID());
 		appUser.setUsername(user.getUsername());
-		appUser.setEmployeeID(employee.getId());
+		appUser.setEmployeeID(employee.getEmployeeID());
 		appUser.setSupervisorID(employee.getSupervisorID());
 		appUser.setMail(employee.getMail());
 		if(!user.getPassword().isEmpty() && user.getPassword().length()>3)appUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -100,12 +101,13 @@ public class AppUserService implements AppUserserviceInterface {
 	}
 
 	@Override
-	public List<AppUser> getAllAppUsers() {
-		List<AppUser> appUsers=appUserRepository.findAll();
+	public UsersDTO getAllAppUsers() {		
+		List<AppUser> appUsers=appUserRepository.findAll();		
 		appUsers.forEach(au->{
 			au.loadUserRoles();
 		});
-		return appUsers;
+		UsersDTO udto=new UsersDTO(appUsers, employeeRepository.findAll());
+		return udto;
 	}
 	public String getEmployeeID(String username) {
 		return appUserRepository.findByUsername(username).getEmployeeID();

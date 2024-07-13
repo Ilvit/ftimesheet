@@ -23,8 +23,8 @@ public class VacationService {
 	
 	public VacationDTO getAllVacations(String employeeID) {
 		VacationReport vr=timesheetService.getAllVacationDays(employeeID);
-		VacationDTO vdto=new VacationDTO(vacationRepository.findByEmployeeID(employeeID), vr, employeeRepository.findById(employeeID).get());
-		vdto.setEmployee(employeeRepository.findById(employeeID).get());
+		VacationDTO vdto=new VacationDTO(vacationRepository.findByEmployeeID(employeeID), vr, employeeRepository.findByEmployeeID(employeeID));
+		vdto.setEmployee(employeeRepository.findByEmployeeID(employeeID));
 		return vdto;
 	}
 	public Vacation getVacation(Long id ) {

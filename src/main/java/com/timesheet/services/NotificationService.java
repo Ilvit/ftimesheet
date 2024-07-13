@@ -27,7 +27,7 @@ public class NotificationService {
 		return notificationRepository.findByMsgTo(employeeID);
 	}
 	public List<Notification>getSupNotifications(String period, String receiverID, String senderID){	
-		Employee sender=employeeRepository.findById(senderID).get();
+		Employee sender=employeeRepository.findByEmployeeID(senderID);
 		return notificationRepository.findByPeriodAndSenderAndMsgTo(period, sender, receiverID);
 	}
 	public List<Notification>getByEmployeeIDAndRead(String employeeID, boolean read){		
@@ -44,9 +44,9 @@ public class NotificationService {
 		return notif;
 	}
 	public NotificationResponseDTO getNotifications(String employeeID, int page){
-		Employee receiver=employeeRepository.findById(employeeID).get();
+		Employee receiver=employeeRepository.findByEmployeeID(employeeID);
 		NotificationResponseDTO nrDTO=new NotificationResponseDTO(notificationRepository.findByMsgTo(employeeID, PageRequest.of(page, pageSize)), receiver);
-		nrDTO.setCopID(employeeRepository.findByPosition(Positions.COP).getId());
+		nrDTO.setCopID(employeeRepository.findByPosition(Positions.COP).getEmployeeID());
 		return  nrDTO;
 	}
 	public int getNotRead(String employeeID) {		

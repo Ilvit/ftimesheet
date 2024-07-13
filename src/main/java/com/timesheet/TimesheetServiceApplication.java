@@ -58,14 +58,14 @@ public class TimesheetServiceApplication {
 			employeeService.addNewEmployee("MUCHECHE", "MUCHECHE", "Jean-Paul", "jpmucheche@maisonfaradja.org", Positions.SITE_SUPERVISOR_KAPANGA);
 			employeeService.addNewEmployee("NGOIE", "MUTOMBO", "Didier", "didierngoie@maisonfaradja.org", Positions.COP);
 			employeeService.addNewEmployee("NGOY", "KABWE", "Delly", "dellyngoy@maisonfaradja.org", Positions.DCOP);
-			employeeService.addNewEmployee("KASHIKA", "KASHIKA", "Clement", "clementkashika@maisonfaradja.org", Positions.FINANCE_ASSISTANT);
-			employeeService.addNewEmployee("BOMASI", "BOMASI", "Michel", "michelbomasi@maisonfaradja.org", Positions.FINANCE_ASSOCIATE);
+			employeeService.addNewEmployee("KASHIKA", "KASHIKA", "Clement", "clementkashika@maisonfaradja.org", Positions.FINANCE_ASSOCIATE);
+			employeeService.addNewEmployee("BOMASI", "BOMASI", "Michel", "michelbomasi@maisonfaradja.org", Positions.FINANCE_OFFICER);
 			employeeService.addNewEmployee("MUKUMBA", "MUKUMBA", "Curtis", "curtismukumba@maisonfaradja.org", Positions.SSI);
 			employeeService.addNewEmployee("KALWA", "KALWA", "Patty", "pattykalwa@maisonfaradja.org", Positions.KPTA);
 			employeeService.addNewEmployee("MBUTA", "MBUTA", "Frederic", "fredericmbuta@maisonfaradja.org", Positions.SIM);
 			employeeService.addNewEmployee("NOVA", "MUNONGO", "Nova", "novamunongo@maisonfaradja.org", Positions.DAF);
 			employeeService.addNewEmployee("MWAMBA", "ILUNGA", "Dyese", "dyese@maisonfaradja.org", Positions.LOG_SUPPLY_CHAIN);
-			employeeService.addNewEmployee("ILUNGA", "KABWE", "Vital", "vitalilunga@maisonfaradja.org", Positions.IT);
+			employeeService.addNewEmployee("ILUNGA", "KABWE", "Vital", "vitalilunga@maisonfaradja.org", Positions.IT_OFFICER_COMM_FP);
 //			Add roles
 			for(RolesNames roleName:RolesNames.values()) {
 				appRoleRepository.save(new Role(null,roleName.name()));
@@ -102,13 +102,15 @@ public class TimesheetServiceApplication {
 			appUserService.saveUser(new AppUser("Michelle", "12345", employeeService.getEmployeeID("BOMASI")));
 //			Add roles to users
 			appUserService.addRoleToUser("Didier", "USER");	
-			appUserService.addRoleToUser("Didier", "USER_READER");	
-			appUserService.addRoleToUser("Didier", "USER_MANAGER");
-			appUserService.addRoleToUser("Didier", "ADMIN");	
+			appUserService.addRoleToUser("Didier", "SUPERVISOR");	
+			appUserService.addRoleToUser("Didier", "HR");	
 			appUserService.addRoleToUser("Didier", "SUPERVISOR");	
 			appUserService.addRoleToUser("Delly", "USER");	
 			appUserService.addRoleToUser("Delly", "SUPERVISOR");	
 			appUserService.addRoleToUser("Vital", "USER");	
+			appUserService.addRoleToUser("Vital", "ADMIN");
+			appUserService.addRoleToUser("Vital", "SUPERVISOR");
+			appUserService.addRoleToUser("Vital", "HR");
 			appUserService.addRoleToUser("Nova", "USER");	
 			appUserService.addRoleToUser("Nova", "SUPERVISOR");	
 			appUserService.addRoleToUser("Nova", "DAF");	
