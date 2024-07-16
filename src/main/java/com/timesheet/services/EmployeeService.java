@@ -52,6 +52,19 @@ public class EmployeeService {
 		
 		return true;
 	}
+	public boolean addNewEmployee(String name, String postName, String employeeID, String nickName, String mail, Positions position) {
+		Employee employee=new Employee();
+		employee.setEmployeeID(employeeID);
+		employee.setName(name);
+		employee.setPostName(postName);
+		employee.setNickName(nickName);
+		employee.setPosition(position);
+		employee.setMail(mail);
+		
+		employeeRepository.save(employee);
+		
+		return true;
+	}
 	public boolean addNewEmployee(Employee employeeRequestDTO) {
 		Employee employee=new Employee();
 		employee.setEmployeeID(UUID.randomUUID().toString().substring(0, 9).toUpperCase());

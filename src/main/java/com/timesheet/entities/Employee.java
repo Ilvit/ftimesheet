@@ -26,7 +26,7 @@ public class Employee {
 	private String name;
 	private String postName;
 	private String nickName;
-	@Column(unique = true)
+//	@Column(unique = true)
 	private String mail;
 	private String phoneNumber;
 	private Genders gender;
