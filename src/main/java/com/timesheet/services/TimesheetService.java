@@ -195,12 +195,15 @@ public class TimesheetService {
 	public VacationReport getAllVacationDays(String employeeID) {
 		int totalHours = 0;
 		int daysTaken=0;
+		int otherWorkedHours;
 		for(Sheetday sd:sheetdayRepository.findByEmployeeID(employeeID)) {
 			totalHours+=sd.getHours();
 		}
 		for(Vacation va:vacationRepository.findByEmployeeID(employeeID)) {
 			daysTaken+=va.getDaysTaken();
 		}
+		otherWorkedHours=employeeRepository.findByEmployeeID(employeeID).getOtherWorkedHours();
+		totalHours+=otherWorkedHours;
 		VacationReport vr=new VacationReport(totalHours, daysTaken);
 		return vr;
 	}

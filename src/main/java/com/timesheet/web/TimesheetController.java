@@ -77,8 +77,7 @@ public class TimesheetController {
 			LocalDate.parse(period, TimesheetPeriods.dtf);
 		} catch (Exception e) {
 			period=tp.getCurrentPeriod();
-		}
-		
+		}		
 		return timesheetService.getTimesheet(period, employeeID);
 	}
 	

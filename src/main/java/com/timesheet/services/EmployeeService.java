@@ -1,6 +1,5 @@
 package com.timesheet.services;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +83,7 @@ public class EmployeeService {
 		employee.setPhoneNumber(employeeRequestDTO.getPhoneNumber());
 		employee.setPosition(employeeRequestDTO.getPosition());
 		employee.setSupervisorID(employeeRequestDTO.getSupervisorID());
+		employee.setOtherWorkedHours(employeeRequestDTO.getOtherWorkedHours());
 		employeeRepository.save(employee);
 		return true;
 	}

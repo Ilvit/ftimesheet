@@ -31,7 +31,7 @@ public class NotificationService {
 		return notificationRepository.findByPeriodAndSenderAndMsgTo(period, sender, receiverID);
 	}
 	public List<Notification>getByEmployeeIDAndRead(String employeeID, boolean read){		
-		return notificationRepository.findByMsgToAndRead(employeeID, read);
+		return notificationRepository.findByMsgToAndTsread(employeeID, read);
 	}
 	public void deleteMessage(Long id) {
 		notificationRepository.deleteById(id);
@@ -39,7 +39,7 @@ public class NotificationService {
 	public Notification getNotification(Long nid) {
 		Notification notif=notificationRepository.findById(nid).get();
 		new Thread(()-> {
-			notif.setRead(true);
+			notif.setTsread(true);
 		}).start();
 		return notif;
 	}
@@ -50,6 +50,6 @@ public class NotificationService {
 		return  nrDTO;
 	}
 	public int getNotRead(String employeeID) {		
-		return notificationRepository.findByMsgToAndRead(employeeID, false).size();
+		return notificationRepository.findByMsgToAndTsread(employeeID, false).size();
 	}
 }

@@ -35,5 +35,6 @@ public class Employee {
 	@OneToMany(mappedBy = "sender")
 	@JsonIgnore
 	private List<Notification>notifications;
+	private int otherWorkedHours;
 
 }

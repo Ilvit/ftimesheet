@@ -1,7 +1,5 @@
 package com.timesheet;
 
-import java.util.List;
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,14 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.timesheet.constants.TimesheetPeriods;
-import com.timesheet.entities.AppUser;
-import com.timesheet.entities.Role;
-import com.timesheet.entities.Sheetday;
-import com.timesheet.entities.TimesheetSaver;
-import com.timesheet.entities.USAIDProject;
-import com.timesheet.enums.Positions;
-import com.timesheet.enums.RolesNames;
 import com.timesheet.repositories.RoleRepository;
 import com.timesheet.repositories.TimesheetSaverRepository;
 import com.timesheet.repositories.USAIDProjectRepository;
@@ -47,7 +37,7 @@ public class TimesheetServiceApplication {
 			 * TimesheetPeriods.dtf), "DRC independence day");
 			 * holidayService.addHoliday(LocalDate.parse("jeudi_01-août-2024",
 			 * TimesheetPeriods.dtf), "DRC day of the dead");
-			 */
+			 
 			//Projects
 			projectRepository.save(new USAIDProject(null,"USAID ULINZI","Key Population project"));
 			projectRepository.save(new USAIDProject(null,"EPIC","Epidemiologic Control"));
@@ -103,8 +93,7 @@ public class TimesheetServiceApplication {
 //			Add roles to users
 			appUserService.addRoleToUser("Didier", "USER");	
 			appUserService.addRoleToUser("Didier", "SUPERVISOR");	
-			appUserService.addRoleToUser("Didier", "HR");	
-			appUserService.addRoleToUser("Didier", "SUPERVISOR");	
+			appUserService.addRoleToUser("Didier", "COP");
 			appUserService.addRoleToUser("Delly", "USER");	
 			appUserService.addRoleToUser("Delly", "SUPERVISOR");	
 			appUserService.addRoleToUser("Vital", "USER");	
@@ -171,7 +160,7 @@ public class TimesheetServiceApplication {
 			savedSheetLineRepository.save(userSavedS10);
 			savedSheetLineRepository.save(userSavedS11);
 			savedSheetLineRepository.save(userSavedS12);
-			
+			*/
 		}; 
 	}	 
 }

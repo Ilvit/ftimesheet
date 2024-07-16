@@ -12,7 +12,7 @@ import com.timesheet.entities.Notification;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 	public List<Notification>findByMsgTo(String employeeID);
-	public List<Notification>findByMsgToAndRead(String employeeID, boolean read);
+	public List<Notification>findByMsgToAndTsread(String employeeID, boolean read);
 	public Page<Notification>findByMsgTo(String employeeID, Pageable pageable);
 //	@Query("select no from Notification no where no.period=:per and no.msgTo=:eid and no.sender.id=:sid")
 	public List<Notification>findByPeriodAndSenderAndMsgTo(String period, Employee sender, String receiverID);
