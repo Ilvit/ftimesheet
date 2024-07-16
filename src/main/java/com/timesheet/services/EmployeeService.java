@@ -12,6 +12,9 @@ import com.timesheet.entities.Employee;
 import com.timesheet.enums.Positions;
 import com.timesheet.repositories.AppUserRepository;
 import com.timesheet.repositories.EmployeeRepository;
+import com.timesheet.repositories.SheetdayRepository;
+import com.timesheet.repositories.TimesheetSaverRepository;
+import com.timesheet.repositories.VacationRepository;
 
 @Service
 @Transactional
@@ -20,7 +23,13 @@ public class EmployeeService {
 	private EmployeeRepository employeeRepository;
 	@Autowired
 	private AppUserRepository appUserRepository;
-		
+	@Autowired
+	private SheetdayRepository sheetdayRepository;
+	@Autowired 
+	TimesheetSaverRepository timesheetSaverRepository;
+	@Autowired
+	private VacationRepository vacationRepository;
+	
 	public Employee getEmployee(String employeeID) {
 		return employeeRepository.findByEmployeeID(employeeID);
 	}
@@ -81,6 +90,19 @@ public class EmployeeService {
 	public boolean updateEmployee(Employee employeeRequestDTO) {
 		Employee employee=employeeRepository.findById(employeeRequestDTO.getId()).get();
 		AppUser au=appUserRepository.findByEmployeeID(employee.getEmployeeID());
+		
+		sheetdayRepository.findByEmployeeID(employee.getEmployeeID()).forEach(sd->{
+			sd.setEmployeeID(employeeRequestDTO.getEmployeeID());
+			sheetdayRepository.save(sd);
+		});
+		timesheetSaverRepository.findByEmployeeID(employee.getEmployeeID()).forEach(ts->{
+			ts.setEmployeeID(employeeRequestDTO.getEmployeeID());
+			timesheetSaverRepository.save(ts);
+		});
+		vacationRepository.findByEmployeeID(employee.getEmployeeID()).forEach(v->{
+			v.setEmployeeID(employeeRequestDTO.getEmployeeID());
+			vacationRepository.save(v);
+		});
 		new Thread(()->{			
 			au.setSupervisorID(employee.getSupervisorID());
 			au.setMail(employeeRequestDTO.getMail());

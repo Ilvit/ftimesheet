@@ -21,12 +21,12 @@ import lombok.NoArgsConstructor;
 public class Employee {
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(length = 10)
+	@Column(length = 9)
 	private String employeeID;
 	private String name;
 	private String postName;
 	private String nickName;
-//	@Column(unique = true)
+	@Column(unique = true)
 	private String mail;
 	private String phoneNumber;
 	private Genders gender;
