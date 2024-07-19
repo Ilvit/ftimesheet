@@ -99,6 +99,13 @@ public class TimesheetController {
 		TimesheetDTO tsd=timesheetService.getNewTimesheetLine(period, employeeID, daysCode, project);
 		return tsd;
 	}
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/initprecedent")
+	public boolean initPrecedentPeriod(@RequestParam(name="per",defaultValue = "") String period, @RequestParam(name = "eid") String employeeID, 
+			@RequestParam(name = "dc", defaultValue = CodeType.REGULAR_DAYS) String daysCode, @RequestParam(name="proj") String project){		
+		timesheetService.initPrecedentPeriod(tp.getPrecedentPeriod(tp.getCurrentPeriod()), employeeID, daysCode, project);
+		return true;
+	}
 	
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
 	@PostMapping("/save")
@@ -140,7 +147,6 @@ public class TimesheetController {
 			period=tp.getCurrentPeriod();
 		}
 		sheetdayService.deleteProjectTimesheetLine(period, employeeID, daysCode, project);
-		System.out.println(period+" "+daysCode+" "+employeeID+" "+project);
 		return timesheetService.getTimesheet(period, employeeID);
 	}
 	@PreAuthorize("hasAuthority('SCOPE_USER')")

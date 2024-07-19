@@ -61,6 +61,7 @@ public class AppUserService implements AppUserserviceInterface {
 				.supervisorID(employee.getSupervisorID())
 				.build();
 		appUserRepository.save(appUser);
+		System.out.println(appUser);
 	}
 
 	@Override

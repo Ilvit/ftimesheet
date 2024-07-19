@@ -118,6 +118,20 @@ public class TimesheetService {
 		return null;
 	}
 	
+	public boolean initPrecedentPeriod(String period, String employeeID, String daysCode, String project) {
+		TimesheetDTO timesheetDTO=new TimesheetDTO();
+		Timesheet timesheet=new Timesheet();
+		TimesheetState tstate=new TimesheetState(period, employeeRepository.findByEmployeeID(employeeID), timesheetSaverRepository.findByEmployeeID(employeeID));
+				
+		fillTimesheetLists(LocalDate.parse(period, TimesheetPeriods.dtf), period, employeeID, CodeType.getType(daysCode), timesheet, project, timesheetDTO);
+		timesheetDTO.setTimesheetsPeriods(tstate.getUsersPeriods());
+		timesheetDTO.setTimesheet(timesheet);
+		saveTimesheet(timesheetDTO);
+		if(!tstate.isTimesheetExists()) {//if a timesheet doesn't exist
+			timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, period, false, false, false, false, false, false));
+		}
+		return true;
+	}
 	public TimesheetDTO getNewTimesheetLine(String period, String employeeID, String daysCode, String project) {
 		TimesheetDTO timesheetDTO=new TimesheetDTO();
 		Timesheet timesheet=new Timesheet();
@@ -195,7 +209,7 @@ public class TimesheetService {
 	public VacationReport getAllVacationDays(String employeeID) {
 		int totalHours = 0;
 		int daysTaken=0;
-		int otherWorkedHours;
+		int otherWorkedHours=0;
 		for(Sheetday sd:sheetdayRepository.findByEmployeeID(employeeID)) {
 			totalHours+=sd.getHours();
 		}

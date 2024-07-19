@@ -1,7 +1,5 @@
 package com.timesheet.services;
 
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +13,7 @@ import com.timesheet.repositories.EmployeeRepository;
 import com.timesheet.repositories.SheetdayRepository;
 import com.timesheet.repositories.TimesheetSaverRepository;
 import com.timesheet.repositories.VacationRepository;
+
 
 @Service
 @Transactional
@@ -48,20 +47,8 @@ public class EmployeeService {
 		employeeRepository.save(employee);
 		return true;
 	}
-	public boolean addNewEmployee(String name, String postName, String nickName, String mail, Positions position) {
-		Employee employee=new Employee();
-		employee.setEmployeeID(UUID.randomUUID().toString().substring(0, 9).toUpperCase());
-		employee.setName(name);
-		employee.setPostName(postName);
-		employee.setNickName(nickName);
-		employee.setPosition(position);
-		employee.setMail(mail);
-		
-		employeeRepository.save(employee);
-		
-		return true;
-	}
-	public boolean addNewEmployee(String name, String postName, String employeeID, String nickName, String mail, Positions position) {
+	
+	public boolean addNewEmployee(String name, String postName, String nickName, String employeeID, String mail, Positions position) {
 		Employee employee=new Employee();
 		employee.setEmployeeID(employeeID);
 		employee.setName(name);
@@ -76,13 +63,15 @@ public class EmployeeService {
 	}
 	public boolean addNewEmployee(Employee employeeRequestDTO) {
 		Employee employee=new Employee();
-		employee.setEmployeeID(UUID.randomUUID().toString().substring(0, 9).toUpperCase());
+		employee.setEmployeeID(employeeRequestDTO.getEmployeeID());
 		employee.setName(employeeRequestDTO.getName());
 		employee.setPostName(employeeRequestDTO.getPostName());
 		employee.setNickName(employeeRequestDTO.getNickName());
 		employee.setGender(employeeRequestDTO.getGender());
+		employee.setPosition(employeeRequestDTO.getPosition());
 		employee.setMail(employeeRequestDTO.getMail());
 		employee.setPhoneNumber(employeeRequestDTO.getPhoneNumber());
+		employee.setSupervisorID(employeeRequestDTO.getSupervisorID());
 		
 		employeeRepository.save(employee);
 		return true;
@@ -102,6 +91,10 @@ public class EmployeeService {
 		vacationRepository.findByEmployeeID(employee.getEmployeeID()).forEach(v->{
 			v.setEmployeeID(employeeRequestDTO.getEmployeeID());
 			vacationRepository.save(v);
+		});
+		timesheetSaverRepository.findByEmployeeID(employee.getEmployeeID()).forEach(ts->{
+			ts.setEmployeeID(employeeRequestDTO.getEmployeeID());
+			timesheetSaverRepository.save(ts);
 		});
 		new Thread(()->{			
 			au.setSupervisorID(employee.getSupervisorID());
