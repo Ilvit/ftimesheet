@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.timesheet.constants.CodeType;
 import com.timesheet.constants.PeriodVars;
-import com.timesheet.constants.TimesheetPeriods;
 import com.timesheet.entities.Employee;
 import com.timesheet.entities.Notification;
 import com.timesheet.entities.Sheetday;
@@ -44,17 +43,10 @@ public class SheetdayService {
 		
 	public List<Sheetday>getNewTimesheetLine(String period, String employeeID, String dayCode, String project){
 		
-		List<Sheetday>sheetdays=new ArrayList<>();
-		LocalDate ld2 = null;
-		try {
-			ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);
-		} catch (Exception e) {
-			System.out.println("Write the correct DateTimeFormatter !");
-		}
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++) {
+		List<Sheetday>sheetdays=new ArrayList<>();		
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates()) {
 			Sheetday sd = null;
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
 			
 			sd=new Sheetday(null, employeeID, ld, 0, CodeType.getType(dayCode), project, false, false, false, false, false);
 			if(ld.getDayOfWeek().equals(DayOfWeek.SATURDAY)||ld.getDayOfWeek().equals(DayOfWeek.SUNDAY))sd.setWeekend(true);
@@ -80,47 +72,34 @@ public class SheetdayService {
 		return true;
 	}
 	public void deleteProjectTimesheetLine(String period, String employeeID, String dayCode, String project) {
-		
-		LocalDate ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);
 		if(dayCode.isEmpty())dayCode=CodeType.REGULAR_DAYS;		
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++ ) {
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates()) {
 			sheetdayRepository.deleteByDateAndEmployeeIDAndDayTypeAndProjectName(ld, employeeID, CodeType.getType(dayCode), project);
 		}
 	}
 	
-	public boolean deleteTimesheetLine(String period, String employeeID, String dayCode) {
-		
-		LocalDate ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);
-		if(dayCode.isEmpty())dayCode=CodeType.REGULAR_DAYS;
-		
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++ ) {
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
+	public boolean deleteTimesheetLine(String period, String employeeID, String dayCode) {		
+		if(dayCode.isEmpty())dayCode=CodeType.REGULAR_DAYS;		
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates()) {
 			sheetdayRepository.deleteByDateAndEmployeeIDAndDayType(ld, employeeID, CodeType.getType(dayCode));
 		}		
 		return true;
 	}
 	
-	public boolean deleteTimesheet(String period, String employeeID) {
-		LocalDate ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);
-		
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++ ) {
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
+	public boolean deleteTimesheet(String period, String employeeID) {		
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates() ) {
 			sheetdayRepository.deleteByDateAndEmployeeID(ld, employeeID);
 		}
 		timesheetSaverRepository.deleteByEmployeeIDAndPeriod(employeeID, period);		
 		return true;
 	}
-	public boolean signTimesheet(String period, String employeeID) {
-		
-		LocalDate ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);		
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++ ) {
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
-			sheetdayRepository.findBetweenDates(ld, ld2, employeeID).forEach(sd->{
+	public boolean signTimesheet(String period, String employeeID) {	
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates()) {
+			sheetdayRepository.findBetweenDates(ld, pv.getPeriodEndDate(), employeeID).forEach(sd->{
 				sd.setSigned(true);
 				sd.setRejected(false);
 				sheetdayRepository.save(sd);
@@ -143,12 +122,9 @@ public class SheetdayService {
 		return true;
 	}
 	public boolean approveTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {		
-		
-		LocalDate ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);		
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++ ) {
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
-			sheetdayRepository.findBetweenDates(ld, ld2, employeeID).forEach(sd->{
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates()) {
+			sheetdayRepository.findBetweenDates(ld, pv.getPeriodEndDate(), employeeID).forEach(sd->{
 				sd.setApproved(true);
 				sd.setRejected(false);
 				sheetdayRepository.save(sd);
@@ -183,11 +159,9 @@ public class SheetdayService {
 	}
 	public boolean rejectTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
 		
-		LocalDate ld2 = LocalDate.parse(period, TimesheetPeriods.dtf);		
-		PeriodVars pv=new PeriodVars(ld2);
-		for(int i=pv.getStart();i<=pv.getEnd();i++ ) {
-			LocalDate ld=LocalDate.of(pv.getYear(), pv.getMonth(), i);
-			sheetdayRepository.findBetweenDates(ld, ld2, employeeID).forEach(sd->{
+		PeriodVars pv=new PeriodVars(period);
+		for(LocalDate ld:pv.getPeriodDates()) {
+			sheetdayRepository.findBetweenDates(ld, pv.getPeriodEndDate(), employeeID).forEach(sd->{
 				sd.setApproved(false);
 				sd.setRejected(true);
 				sd.setSigned(false);

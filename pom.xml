@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>com.mf</groupId>
 	<artifactId>timesheet</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>MAFA.0.1</version>
 	<name>timesheet</name>
-	<description>Demo project for Spring Boot</description>
+	<description>A web timesheet app for Maison Faradja NGO by Ir Vital ILUNGA</description>
 	<url/>
 	<licenses>
 		<license/>

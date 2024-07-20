@@ -18,8 +18,8 @@ public class TimesheetPeriods {
 	
 	public TimesheetPeriods() {
 		for(Month month:Month.values()) {
-			LocalDate ld=LocalDate.of(year, month, 15);
-			LocalDate ld2=LocalDate.of(year, month, ld.lengthOfMonth());
+			LocalDate ld=LocalDate.of(year, month, 10);
+			LocalDate ld2=LocalDate.of(year, month, 25);
 			periods.add(ld.format(dtf));
 			periods.add(ld2.format(dtf));
 		}
@@ -27,10 +27,10 @@ public class TimesheetPeriods {
 //	public boolean
 	public String getCurrentPeriod() {
 		LocalDate currentDate=LocalDate.now();
-		if(currentDate.getDayOfMonth()<16) {
-			currentPeriod=LocalDate.of(year, currentDate.getMonth(), 15).format(dtf);
-		}else if(currentDate.getDayOfMonth()>15) {
-			currentPeriod=LocalDate.of(year, currentDate.getMonth(), currentDate.lengthOfMonth()).format(dtf);
+		if(currentDate.getDayOfMonth()<11) {
+			currentPeriod=LocalDate.of(year, currentDate.getMonth(), 10).format(dtf);
+		}else if(currentDate.getDayOfMonth()>10) {
+			currentPeriod=LocalDate.of(year, currentDate.getMonth(), 25).format(dtf);
 		}
 		return currentPeriod;
 	}
@@ -50,14 +50,14 @@ public class TimesheetPeriods {
 			period=tp.getCurrentPeriod();
 		}
 		String precedentPeriod ="";
-		if(ld.getDayOfMonth()>15) {
-			precedentPeriod=LocalDate.of(year, ld.getMonth(), 15).format(dtf);
-		}else if(ld.getDayOfMonth()<16) {
+		if(ld.getDayOfMonth()>10) {
+			precedentPeriod=LocalDate.of(year, ld.getMonth(), 10).format(dtf);
+		}else if(ld.getDayOfMonth()<11) {
 			Month month=ld.getMonth().minus(1);	
 			if(ld.getMonth().equals(Month.JANUARY)) {					
-				precedentPeriod=LocalDate.of(ld.getYear()-1, month, month.length(ld.minusYears(1).isLeapYear())).format(dtf);
+				precedentPeriod=LocalDate.of(ld.getYear()-1, month, 25).format(dtf);
 			}else {
-				precedentPeriod=LocalDate.of(year, month, month.length(ld.minusYears(1).isLeapYear())).format(dtf);
+				precedentPeriod=LocalDate.of(year, month, month.minus(1).getValue()).format(dtf);
 			}			
 		}
 		return precedentPeriod;

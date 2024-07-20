@@ -110,6 +110,7 @@ public class TimesheetService {
 				}
 				
 			}
+			System.out.println(timesheet.getRegularDaysLine());
 			timesheetDTO.setTimesheetPeriod(period);
 			timesheetDTO.setTimesheet(timesheet);;
 			return timesheetDTO;
@@ -222,16 +223,9 @@ public class TimesheetService {
 		return vr;
 	}
 
-	private LocalDate getStartingDate(LocalDate endDate) {
-		int year=endDate.getYear();
-		int month=endDate.getMonthValue();
-		int beginingDay;
-		int endDay=endDate.getDayOfMonth();
-		if(endDay>15) {
-			beginingDay=16;
-		}else beginingDay=1;
-		LocalDate ld1=LocalDate.of(year, month, beginingDay);
-		return ld1;		
+	private LocalDate getStartingDate(LocalDate endDate) {	
+		PeriodVars pv=new PeriodVars(endDate);
+		return pv.getPeriodStartDate();		
 	}
 	
 	////n get a new timesheet line
@@ -271,12 +265,10 @@ public class TimesheetService {
 			if(!vdProjects.contains(sd.getProjectName()))vdProjects.add(sd.getProjectName());
 		}
 		Employee employee=employeeRepository.findByEmployeeID(employeeID);			
-		PeriodVars pv=new PeriodVars(ld);
-		List<LocalDate>ldList=new ArrayList<>();
+		PeriodVars pv=new PeriodVars(ld);		
 		// fill period dates and all projects names
-		for(int i=pv.getStart();i<=pv.getEnd();i++) {			
-			ldList.add(LocalDate.of(pv.getYear(), pv.getMonth(), i));
-		}
+		List<LocalDate>ldList=pv.getPeriodDates();
+		
 		usaidProjectRepository.findAll().forEach(proj->{
 			allProjects.add(proj.getName());
 		});
@@ -325,8 +317,8 @@ public class TimesheetService {
 		//Fill period dates
 		PeriodVars pv=new PeriodVars(ld);
 		List<LocalDate>ldList=new ArrayList<>();
-		for(int i=pv.getStart();i<=pv.getEnd();i++) {			
-			ldList.add(LocalDate.of(pv.getYear(), pv.getMonth(), i));
+		for(LocalDate lod:pv.getPeriodDates()) {			
+			ldList.add(lod);
 		}		
 		//fill all projects list
 		usaidProjectRepository.findAll().forEach(proj->{
