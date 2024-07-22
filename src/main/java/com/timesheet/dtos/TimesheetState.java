@@ -18,6 +18,7 @@ public class TimesheetState {
 	private String currentPeriod;
 	private Employee employee;
 	private Employee supervisor;
+	private Employee daf;
 	private boolean canAddNewTimesheet;
 	private boolean timesheetExists;
 	private boolean timesheetPeriodExists;

@@ -19,6 +19,7 @@ import com.timesheet.entities.TimesheetSaver;
 import com.timesheet.entities.USAIDProject;
 import com.timesheet.entities.Vacation;
 import com.timesheet.enums.DayType;
+import com.timesheet.enums.Positions;
 import com.timesheet.models.NotificationRequest;
 import com.timesheet.models.Timesheet;
 import com.timesheet.models.VacationReport;
@@ -110,7 +111,6 @@ public class TimesheetService {
 				}
 				
 			}
-			System.out.println(timesheet.getRegularDaysLine());
 			timesheetDTO.setTimesheetPeriod(period);
 			timesheetDTO.setTimesheet(timesheet);;
 			return timesheetDTO;
@@ -160,6 +160,7 @@ public class TimesheetService {
 		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
 		tstate.setSupervisor(supervisor);
 		tstate.setVacationReport(getAllVacationDays(employeeID));
+		tstate.setDaf(employeeRepository.findByPosition(Positions.DAF));
 		return tstate;
 	}
 	

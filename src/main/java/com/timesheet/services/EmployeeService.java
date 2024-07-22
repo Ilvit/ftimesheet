@@ -122,4 +122,11 @@ public class EmployeeService {
 		employeeRepository.save(agent);
 		return true;		
 	}
+	public boolean setSupervisor(String employeeID, String supervisorEmployeeID) {		
+		Employee agent=employeeRepository.findByEmployeeID(employeeID);
+		Employee supervisor=employeeRepository.findByEmployeeID(supervisorEmployeeID);
+		agent.setSupervisorID(supervisor.getEmployeeID());
+		employeeRepository.save(agent);
+		return true;		
+	}
 }
