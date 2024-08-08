@@ -115,13 +115,7 @@ public class EmployeeService {
 		employeeRepository.save(employee);
 		return true;
 	}
-	public boolean setSupervisorToEmployee(String supervisorName, String agentName) {
-		Employee supervisor=employeeRepository.findByName(supervisorName);
-		Employee agent=employeeRepository.findByName(agentName);
-		agent.setSupervisorID(supervisor.getEmployeeID());
-		employeeRepository.save(agent);
-		return true;		
-	}
+	
 	public boolean setSupervisor(String employeeID, String supervisorEmployeeID) {		
 		Employee agent=employeeRepository.findByEmployeeID(employeeID);
 		Employee supervisor=employeeRepository.findByEmployeeID(supervisorEmployeeID);

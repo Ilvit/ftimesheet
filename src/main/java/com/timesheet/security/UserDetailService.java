@@ -18,7 +18,6 @@ public class UserDetailService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		AppUser appUser=appUserService.getUser(username);
-		System.out.println("dans la méthode :"+appUser);
 		if(appUser==null)throw new UsernameNotFoundException(String.format("The user %s is not found !", username));
 	
 		UserDetails userDetails=User

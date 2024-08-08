@@ -1,8 +1,9 @@
 package com.timesheet;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 
-import com.timesheet.constants.IDGenerator;
 import com.timesheet.constants.TimesheetPeriods;
 
 public class Tests {
@@ -31,8 +32,25 @@ public class Tests {
 //*/	
 		LocalDate today=LocalDate.parse("mardi_19-mars-2024", TimesheetPeriods.dtf);
 		LocalDate tomorrow=LocalDate.parse("mercredi_20-mars-2024", TimesheetPeriods.dtf);
+		LocalDate day=LocalDate.parse("jeudi_08-août-2024", TimesheetPeriods.dtf);
 		LocalDate now=LocalDate.now();
-		System.out.println(today.isEqual(now));
-		System.out.println(tomorrow.isAfter(today));
+		
+		ArrayList<LocalDate>ald=new ArrayList<>();
+		ald.add(now);
+		ald.add(day);
+		ald.add(today);
+		ald.add(tomorrow);
+		
+		if(!ald.isEmpty()) {
+			ArrayList<LocalDate>al=new ArrayList<>();
+			ald.forEach(uper->{
+				al.add(uper);
+			});
+			LocalDate ld=Collections.max(al);
+			System.out.println("in and before");
+			System.out.println(ld);
+		}
+		System.out.println("finished");
 	}
+	
 }

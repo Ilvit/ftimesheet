@@ -18,9 +18,9 @@ public class TimesheetSaver {
 	private String period;	
 	private boolean signed;
 	private boolean approved;
-	private boolean approvedByDAF;
 	private boolean rejected;
 	private boolean hasNewCreated;
 	private boolean paid;
+	
 	
 }

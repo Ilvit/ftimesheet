@@ -13,7 +13,7 @@ public class TimesheetPeriods {
 
 	private int year=LocalDate.now().getYear();
 	private List<String>periods=new ArrayList<>();
-	public static String currentPeriod;
+	private String currentPeriod;
 	public static DateTimeFormatter dtf=DateTimeFormatter.ofPattern("EEEE_dd-MMMM-yyyy");
 	
 	public TimesheetPeriods() {
@@ -61,5 +61,17 @@ public class TimesheetPeriods {
 			}			
 		}
 		return precedentPeriod;
+	}
+	public static String findPeriod(String formattedDate) {
+		LocalDate ld = null;
+				try {
+					ld=LocalDate.parse(formattedDate);
+				} catch (Exception e) {
+					ld=LocalDate.parse(formattedDate, dtf);
+				}
+		if(ld.getDayOfMonth()>10 && ld.getDayOfMonth()<26) {			
+			return LocalDate.of(ld.getYear(), ld.getMonth(), 25).format(dtf);
+		}
+		return LocalDate.of(ld.getYear(), ld.getMonth(), 10).format(dtf);
 	}
 }

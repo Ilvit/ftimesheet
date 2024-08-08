@@ -80,11 +80,24 @@ public class TimesheetController {
 		}		
 		return timesheetService.getTimesheet(period, employeeID);
 	}
+	@PreAuthorize("hasAuthority('SCOPE_ADM4')")
+	@GetMapping("/userstimesheet")
+	public TimesheetDTO getTimeSheet(@RequestParam(name="per",defaultValue = "") String period, @RequestParam(name = "eid") String employeeID) {
+		return timesheetService.getTimesheet(TimesheetPeriods.findPeriod(period), employeeID);
+	}
 	
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
 	@GetMapping("/newtimesheet")
 	public TimesheetDTO getNewTimesheet(@RequestParam(name="eid",defaultValue = "") String employeeID){		
 		return timesheetService.getNewTimesheet(employeeID);
+	}
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/insertline")
+	public boolean insertNewTimesheetLine(@RequestParam(name="per",defaultValue = "") String period, @RequestParam(name = "eid") String employeeID, 
+			@RequestParam(name = "dc", defaultValue = CodeType.REGULAR_DAYS) String daysCode, @RequestParam(name="proj") String project){
+		
+		timesheetService.insertTimesheetLine(period, employeeID, daysCode, project);
+		return true;
 	}
 	
 	@PreAuthorize("hasAuthority('SCOPE_USER')")
@@ -124,6 +137,12 @@ public class TimesheetController {
 	public boolean signTimesheet(@RequestParam(name="eid") String employeeID, @RequestParam(name="per") String period) {
 		return timesheetService.signTimesheet(period, employeeID);
 	}
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/fictsign")
+	public boolean fictiveSignTimesheet(@RequestParam(name="eid") String employeeID, @RequestParam(name="per") String period, @RequestParam(name = "smail", defaultValue = "false")boolean sendMail) {
+		timesheetService.fictiveSignTimesheet(period, employeeID, sendMail);
+		return true;
+	}
 	
 	@PreAuthorize("hasAuthority('SCOPE_SUPERVISOR')")
 	@PostMapping("/approve")
@@ -131,6 +150,12 @@ public class TimesheetController {
 			@RequestParam(name="per") String period, @RequestBody NotificationRequest notification) {
 		return timesheetService.approveTimesheet(period, employeeID, supervisorID, notification);
 	}
+	@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+	@GetMapping("/fictapprove")
+	public boolean fictiveApproveTimesheet(@RequestParam(name="eid") String employeeID, @RequestParam(name="per") String period, @RequestParam(name = "smail")boolean sendMail ) {
+		return timesheetService.fictiveApproveTimesheet(employeeID, period, sendMail);
+	}
+	
 	@PreAuthorize("hasAuthority('SCOPE_SUPERVISOR')")
 	@PostMapping("/reject")
 	public boolean rejectTimesheet(@RequestParam(name="eid") String employeeID, @RequestParam(name="sid") String supervisorID,
@@ -247,12 +272,12 @@ public class TimesheetController {
 	
 	//Employees
 	
-	@PreAuthorize("hasAuthority('SCOPE_HR')")
+	@PreAuthorize("hasAuthority('SCOPE_ADM4')")
 	@GetMapping("/employees/employee")
 	public Employee getEmployee(@RequestParam(name="eid") String employeeID){
 		return employeeService.getEmployee(employeeID);
 	}
-	@PreAuthorize("hasAuthority('SCOPE_HR')")
+	@PreAuthorize("hasAuthority('SCOPE_ADM4')")
 	@GetMapping("/employees")
 	public EmployeeDTO getAllEmployees(){
 		return employeeService.getAllEmployees();

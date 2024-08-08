@@ -1,7 +1,9 @@
 package com.timesheet.services;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,16 @@ public class TimesheetService {
 	@Autowired
 	private VacationRepository vacationRepository;
 	
+	
+	public void insertTimesheetLine(String period, String employeeID, String daysCode, String project) {
+		saveTimesheet(prepareNewTimesheetLine(TimesheetPeriods.findPeriod(period),employeeID,  daysCode, project));	
+	}
+	public void insertTimesheetLine(String period, List<String>employeesIDList, String daysCode, String project) {
+		employeesIDList.forEach(employeeID->{
+			saveTimesheet(prepareNewTimesheetLine(employeeID, period, daysCode, project));
+		});		
+	}
+	
 	public TimesheetDTO getNewTimesheet(String employeeID) {		
 		Employee employee=employeeRepository.findByEmployeeID(employeeID);
 		Employee supervisor=employeeRepository.findByEmployeeID(employee.getSupervisorID());
@@ -57,9 +69,9 @@ public class TimesheetService {
 			allProjects.add(proj.getName());
 		});
 		TimesheetPeriods tp=new TimesheetPeriods();
-		timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, TimesheetPeriods.currentPeriod, false, false, false, false, false, false));
-		TimesheetSaver ussl=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, tp.getPrecedentPeriod(tp.getCurrentPeriod()));
-		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
+		timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, getNextUsersPeriod(employeeID), false, false, false, false, false));
+		TimesheetSaver ussl=timesheetSaverRepository.findByEmployeeIDAndPeriod(employeeID, getLastUsersPeriod(employeeID));
+		TimesheetState tstate=new TimesheetState(tp.getCurrentPeriod(), employee, timesheetSaverRepository.findByEmployeeID(employeeID));
 		tstate.setSupervisor(supervisor);
 		tstate.setVacationReport(getAllVacationDays(employeeID));
 		
@@ -73,7 +85,7 @@ public class TimesheetService {
 		timesheetDTO.setRdProjects(rdProjects);
 		timesheetDTO.setHdProjects(hdProjects);
 		timesheetDTO.setAllProjects(allProjects);  
-		timesheetDTO.setTimesheetPeriod(TimesheetPeriods.currentPeriod);
+		timesheetDTO.setTimesheetPeriod(tp.getCurrentPeriod());
 		timesheetDTO.setTimesheetsPeriods(tstate.getUsersPeriods());
 		saveTimesheet(timesheetDTO);
 		return timesheetDTO;
@@ -104,12 +116,7 @@ public class TimesheetService {
 					timesheet.setRejected(true);
 					timesheet.setSigned(false);
 				}					
-				if(tsaved.isApprovedByDAF()) {
-					timesheet.setApprovedByDAF(true);
-					timesheet.setApprovableByDAF(false);						
-					timesheet.setSignable(false);
-				}
-				
+								
 			}
 			timesheetDTO.setTimesheetPeriod(period);
 			timesheetDTO.setTimesheet(timesheet);;
@@ -129,7 +136,7 @@ public class TimesheetService {
 		timesheetDTO.setTimesheet(timesheet);
 		saveTimesheet(timesheetDTO);
 		if(!tstate.isTimesheetExists()) {//if a timesheet doesn't exist
-			timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, period, false, false, false, false, false, false));
+			timesheetSaverRepository.save(new TimesheetSaver(null, employeeID, period, false, false, false, false, false));
 		}
 		return true;
 	}
@@ -157,10 +164,10 @@ public class TimesheetService {
 		} catch (Exception e) {
 			supervisor = employeeRepository.findByEmployeeID(employeeID);
 		}
-		TimesheetState tstate=new TimesheetState(TimesheetPeriods.currentPeriod, employee, timesheetSaverRepository.findByEmployeeID(employeeID));
+		TimesheetState tstate=new TimesheetState(getNextUsersPeriod(employeeID), employee, timesheetSaverRepository.findByEmployeeID(employeeID));
 		tstate.setSupervisor(supervisor);
 		tstate.setVacationReport(getAllVacationDays(employeeID));
-		tstate.setDaf(employeeRepository.findByPosition(Positions.DAF));
+		tstate.setCop(employeeRepository.findByPosition(Positions.COP));
 		return tstate;
 	}
 	
@@ -176,7 +183,7 @@ public class TimesheetService {
 		}
 		
 		if(timesheetSaverRepository.findByEmployeeIDAndPeriod(timesheetDTO.getEmployee().getEmployeeID(), timesheetDTO.getTimesheetPeriod())==null) {
-			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getEmployeeID(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false, false);
+			TimesheetSaver userSavedSl=new TimesheetSaver(null, timesheetDTO.getEmployee().getEmployeeID(), timesheetDTO.getTimesheetPeriod(), false, false, false, false, false);
 			timesheetSaverRepository.save(userSavedSl);			
 		}
 	}
@@ -195,10 +202,35 @@ public class TimesheetService {
 		sheetdayService.signTimesheet(period, employeeID);
 		return true;
 	}
+	public void fictiveSignTimesheet(String period, String employeeID, boolean sendMail) {
+		sheetdayService.fictiveSignTimesheet(TimesheetPeriods.findPeriod(period), employeeID, sendMail);
+	}
+	public void fictiveSignTimesheet(String period, List<String>employeeIDList, boolean sendMail) {
+		if(!employeeIDList.isEmpty()) {
+			employeeIDList.forEach(employeeID->{
+				sheetdayService.fictiveSignTimesheet(period, employeeID, sendMail);
+			});
+		}		
+	}
 	public boolean approveTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
 		sheetdayService.approveTimesheet(period, employeeID, supervisorID, notification);
 		return true;
 	}
+	public boolean fictiveApproveTimesheet(String period, String employeeID, boolean sendMail) {
+		Employee employee=employeeRepository.findByEmployeeID(employeeID);
+		sheetdayService.fictiveApproveTimesheet(TimesheetPeriods.findPeriod(period), employeeID, employee.getSupervisorID(), sendMail);
+		return true;
+	}
+	public boolean fictiveApproveTimesheet(String period, List<String>employeeIDList, boolean sendMail) {
+		if(!employeeIDList.isEmpty()) {
+			employeeIDList.forEach(employeeID->{
+				Employee employee=employeeRepository.findByEmployeeID(employeeID);
+				sheetdayService.fictiveApproveTimesheet(period, employeeID, employee.getSupervisorID(), sendMail);
+			});
+		}	
+		return true;
+	}
+	
 	
 	public boolean rejectTimesheet(String period, String employeeID, String supervisorID, NotificationRequest notification) {
 		sheetdayService.rejectTimesheet(period, employeeID, supervisorID, notification);
@@ -345,6 +377,46 @@ public class TimesheetService {
 		timesheetDTO.setTimesheetsPeriods(userTimesheetPeriods);
 		timesheetDTO.setTimesheet(timesheet);
 	}
+	private TimesheetDTO prepareNewTimesheetLine(String period, String employeeID, String daysCode, String project) {
+		TimesheetDTO timesheetDTO=new TimesheetDTO();
+		Timesheet timesheet=new Timesheet();
+//		une vérification si la ligne existe est nécessaire à l'avenir
+		fillTimesheetLists(LocalDate.parse(period, TimesheetPeriods.dtf), period, employeeID, CodeType.getType(daysCode), timesheet, project, timesheetDTO);
+		timesheetDTO.setTimesheet(timesheet);
+		timesheetDTO.setTimesheetPeriod(period);
+		return timesheetDTO;
+	}
+	private String getNextUsersPeriod(String employeeID) {
+		ArrayList<LocalDate>al=new ArrayList<>();
+		List<TimesheetSaver>tsaverList=timesheetSaverRepository.findByEmployeeID(employeeID);
+		
+		if(!tsaverList.isEmpty()) {
+			tsaverList.forEach(tsaver->{
+				al.add(LocalDate.parse(tsaver.getPeriod(), TimesheetPeriods.dtf));				
+			});
+			LocalDate ld=Collections.max(al);
+			if(ld.getDayOfMonth()==10) {
+				return LocalDate.of(ld.getYear(), ld.getMonth(), 25).format(TimesheetPeriods.dtf);
+			}else if(ld.getDayOfMonth()==25) {
+				if(ld.getMonth().equals(Month.DECEMBER)) {
+					return LocalDate.of(ld.getYear()+1, ld.getMonth().plus(1), 10).format(TimesheetPeriods.dtf);
+				}else {
+					return LocalDate.of(ld.getYear(), ld.getMonth().plus(1), 10).format(TimesheetPeriods.dtf);
+				}
+			}
+		}
+		return LocalDate.now().format(TimesheetPeriods.dtf);
+	}
+	private String getLastUsersPeriod(String employeeID) {
+		ArrayList<LocalDate>al=new ArrayList<>();
+		List<TimesheetSaver>tsaverList=timesheetSaverRepository.findByEmployeeID(employeeID);
+		if(!tsaverList.isEmpty()) {
+			tsaverList.forEach(tsaver->{
+				al.add(LocalDate.parse(tsaver.getPeriod(), TimesheetPeriods.dtf));
+			});
+			return Collections.max(al).format(TimesheetPeriods.dtf);
+		}
+		return LocalDate.now().format(TimesheetPeriods.dtf);
+	}
 	
-
 }

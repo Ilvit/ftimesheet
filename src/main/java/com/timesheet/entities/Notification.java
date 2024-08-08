@@ -27,8 +27,5 @@ public class Notification {
 	private Instant instant;
 	private String period;
 	private boolean tsread;
-	private String idTobeTransferred;
-	private boolean approvedByDAF;
-	
-		
+	private String idTobeTransferred;		
 }

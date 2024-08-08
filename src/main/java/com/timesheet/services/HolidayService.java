@@ -34,6 +34,10 @@ public class HolidayService implements HolidayInterface {
 
 	@Override
 	public boolean removeHoliday(LocalDate ld) {
+		sheetdayRepository.findByDate(ld).forEach(sd->{
+			sd.setHoliday(false);
+			sheetdayRepository.save(sd);
+		});
 		holidayRepository.deleteByDate(ld);
 		return true;
 	}
