@@ -408,7 +408,7 @@ public class TimesheetService {
 		return LocalDate.now().format(TimesheetPeriods.dtf);
 	}
 	private String getLastUsersPeriod(String employeeID) {
-		ArrayList<LocalDate>al=new ArrayList<>();
+		ArrayList<LocalDate>al=new ArrayList<>(); 
 		List<TimesheetSaver>tsaverList=timesheetSaverRepository.findByEmployeeID(employeeID);
 		if(!tsaverList.isEmpty()) {
 			tsaverList.forEach(tsaver->{

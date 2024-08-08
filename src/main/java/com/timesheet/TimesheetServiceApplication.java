@@ -7,11 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.timesheet.entities.AppUser;
-import com.timesheet.entities.Role;
-import com.timesheet.entities.USAIDProject;
-import com.timesheet.enums.Positions;
-import com.timesheet.enums.RolesNames;
 import com.timesheet.repositories.RoleRepository;
 import com.timesheet.repositories.TimesheetSaverRepository;
 import com.timesheet.repositories.USAIDProjectRepository;
@@ -48,62 +43,62 @@ public class TimesheetServiceApplication {
 	  
 	  
 	  //Projects 
-	  projectRepository.save(new USAIDProject(null,"USAID ULINZI","Key Population project"));
-	  projectRepository.save(new USAIDProject(null,"EPIC","Epidemiologic Control"));
+//	  projectRepository.save(new USAIDProject(null,"USAID ULINZI","Key Population project"));
+//	  projectRepository.save(new USAIDProject(null,"EPIC","Epidemiologic Control"));
 	  
 	  //Add employees 
-	  employeeService.addNewEmployee("SEYA", "SENEFU", "Francine","MAFA005UU", "fseya@maisonfaradja.org", Positions.RECEPTIONIST);
-	  employeeService.addNewEmployee("KYUNGU", "MWANANGOY", "Tresor","MAFA013UU","tresorkyungu@maisonfaradja.org", Positions.SITE_SUPERVISOR_DILOLO);
-	  employeeService.addNewEmployee("MUCHECHE", "NYANDWE", "Jean-Paul","MAFA011UU", "jpmucheche@maisonfaradja.org",Positions.SITE_SUPERVISOR_KAPANGA); 
-	  employeeService.addNewEmployee("NGOIE", "MUTOMBO", "Didier","MAFA001UU", "didierngoie@maisonfaradja.org",Positions.COP); 
-	  employeeService.addNewEmployee("NGOY", "KABWE", "Delly","MAFA002UU", "dellyngoy@maisonfaradja.org", Positions.DCOP);
-	  employeeService.addNewEmployee("KASHIKA", "MUTOMBO", "Clement","MAFA006UU", "clementkashika@maisonfaradja.org", Positions.FINANCE_ASSOCIATE);
-	  employeeService.addNewEmployee("BOMASI", "GIZELA", "Michelle","MAFA012UU", "mbomasi@maisonfaradja.org", Positions.FINANCE_OFFICER);
-	  employeeService.addNewEmployee("MUKUMBA", "KAMWANYA", "Curtis","MAFA003UU", "curtismukumba@maisonfaradja.org", Positions.SSI);
-	  employeeService.addNewEmployee("KALWA", "TUNDWA", "Patty", "MAFA009UU","pattykalwa@maisonfaradja.org", Positions.KPTA);
-	  employeeService.addNewEmployee("MBUTA", "NKANGI", "Frederic","MAFA015UU", "fredericmbuta@maisonfaradja.org", Positions.SIM);
-	  employeeService.addNewEmployee("MUNONGO", "FUTILA", "Nova","MAFA004UU", "novamunongo@maisonfaradja.org", Positions.DAF);
-	  employeeService.addNewEmployee("MWAMBA", "ILUNGA", "Dyese","MAFA007UU","dyesemwamba@maisonfaradja.org", Positions.LOG_SUPPLY_CHAIN);
-	  employeeService.addNewEmployee("ILUNGA", "KABWE", "Vital", "MAFA018UU","vitalilunga@maisonfaradja.org", Positions.IT_OFFICER_COMM_FP);
-	  employeeService.addNewEmployee("NGOIE", "LUBOMBO", "Michée", "MAFA010UU","micheelubombo@maisonfaradja.org", Positions.LOG_ASSOCIATE);
-	  employeeService.addNewEmployee("KITWA", "MUYAMPE", "Jérémie", "MAFA008UU","kitwamuyampefils@gmail.com", Positions.GARDENER_KOLWEZI);
-	  employeeService.addNewEmployee("LUFULWABO", "TSHALA", "Fifi", "MAFA014UU","fifilufulwabo@gmail.com", Positions.CLEANER_KOLWEZI);
-	  employeeService.addNewEmployee("SAMBA", "YAMBO", "Béatrice", "MAFA016UU","beasamba@gmail.com", Positions.CLEANER_KASAJI);
-	  employeeService.addNewEmployee("NGOIE", "SAMBA", "Hervé", "MAFA017UU","ngoieherve@gmail.com", Positions.DRIVER_KOLWEZI);
+//	  employeeService.addNewEmployee("SEYA", "SENEFU", "Francine","MAFA005UU", "fseya@maisonfaradja.org", Positions.RECEPTIONIST);
+//	  employeeService.addNewEmployee("KYUNGU", "MWANANGOY", "Tresor","MAFA013UU","tresorkyungu@maisonfaradja.org", Positions.SITE_SUPERVISOR_DILOLO);
+//	  employeeService.addNewEmployee("MUCHECHE", "NYANDWE", "Jean-Paul","MAFA011UU", "jpmucheche@maisonfaradja.org",Positions.SITE_SUPERVISOR_KAPANGA); 
+//	  employeeService.addNewEmployee("NGOIE", "MUTOMBO", "Didier","MAFA001UU", "didierngoie@maisonfaradja.org",Positions.COP); 
+//	  employeeService.addNewEmployee("NGOY", "KABWE", "Delly","MAFA002UU", "dellyngoy@maisonfaradja.org", Positions.DCOP);
+//	  employeeService.addNewEmployee("KASHIKA", "MUTOMBO", "Clement","MAFA006UU", "clementkashika@maisonfaradja.org", Positions.FINANCE_ASSOCIATE);
+//	  employeeService.addNewEmployee("BOMASI", "GIZELA", "Michelle","MAFA012UU", "mbomasi@maisonfaradja.org", Positions.FINANCE_OFFICER);
+//	  employeeService.addNewEmployee("MUKUMBA", "KAMWANYA", "Curtis","MAFA003UU", "curtismukumba@maisonfaradja.org", Positions.SSI);
+//	  employeeService.addNewEmployee("KALWA", "TUNDWA", "Patty", "MAFA009UU","pattykalwa@maisonfaradja.org", Positions.KPTA);
+//	  employeeService.addNewEmployee("MBUTA", "NKANGI", "Frederic","MAFA015UU", "fredericmbuta@maisonfaradja.org", Positions.SIM);
+//	  employeeService.addNewEmployee("MUNONGO", "FUTILA", "Nova","MAFA004UU", "novamunongo@maisonfaradja.org", Positions.DAF);
+//	  employeeService.addNewEmployee("MWAMBA", "ILUNGA", "Dyese","MAFA007UU","dyesemwamba@maisonfaradja.org", Positions.LOG_SUPPLY_CHAIN);
+//	  employeeService.addNewEmployee("ILUNGA", "KABWE", "Vital", "MAFA018UU","vitalilunga@maisonfaradja.org", Positions.IT_OFFICER_COMM_FP);
+//	  employeeService.addNewEmployee("NGOIE", "LUBOMBO", "Michée", "MAFA010UU","micheelubombo@maisonfaradja.org", Positions.LOG_ASSOCIATE);
+//	  employeeService.addNewEmployee("KITWA", "MUYAMPE", "Jérémie", "MAFA008UU","kitwamuyampefils@gmail.com", Positions.GARDENER_KOLWEZI);
+//	  employeeService.addNewEmployee("LUFULWABO", "TSHALA", "Fifi", "MAFA014UU","fifilufulwabo@gmail.com", Positions.CLEANER_KOLWEZI);
+//	  employeeService.addNewEmployee("SAMBA", "YAMBO", "Béatrice", "MAFA016UU","beasamba@gmail.com", Positions.CLEANER_KASAJI);
+//	  employeeService.addNewEmployee("NGOIE", "SAMBA", "Hervé", "MAFA017UU","ngoieherve@gmail.com", Positions.DRIVER_KOLWEZI);
 	  
 	  // Add roles 
-	  for(RolesNames roleName:RolesNames.values()) {
-	  appRoleRepository.save(new Role(null,roleName.name())); } 
-	  
+//	  for(RolesNames roleName:RolesNames.values()) {
+//	  appRoleRepository.save(new Role(null,roleName.name())); } 
+//	  
 	  //define a supervisor
 	  
-	  employeeService.setSupervisor("MAFA018UU", "MAFA015UU");
-	  employeeService.setSupervisor("MAFA003UU", "MAFA015UU");
-	  employeeService.setSupervisor("MAFA015UU", "MAFA002UU");
-	  employeeService.setSupervisor("MAFA013UU", "MAFA009UU");
-	  employeeService.setSupervisor("MAFA011UU", "MAFA009UU");
-	  employeeService.setSupervisor("MAFA009UU", "MAFA002UU");
-	  employeeService.setSupervisor("MAFA006UU", "MAFA012UU");
-	  employeeService.setSupervisor("MAFA012UU", "MAFA004UU");
-	  employeeService.setSupervisor("MAFA007UU", "MAFA004UU");
-	  employeeService.setSupervisor("MAFA005UU", "MAFA004UU");
-	  employeeService.setSupervisor("MAFA010UU", "MAFA007UU");
-	  employeeService.setSupervisor("MAFA014UU", "MAFA007UU");
-	  employeeService.setSupervisor("MAFA016UU", "MAFA010UU");
-	  employeeService.setSupervisor("MAFA017UU", "MAFA007UU");
-	  employeeService.setSupervisor("MAFA004UU", "MAFA002UU");
-	  employeeService.setSupervisor("MAFA002UU", "MAFA001UU");
-	  employeeService.setSupervisor("MAFA001UU", "MAFA002UU");
+//	  employeeService.setSupervisor("MAFA018UU", "MAFA015UU");
+//	  employeeService.setSupervisor("MAFA003UU", "MAFA015UU");
+//	  employeeService.setSupervisor("MAFA015UU", "MAFA002UU");
+//	  employeeService.setSupervisor("MAFA013UU", "MAFA009UU");
+//	  employeeService.setSupervisor("MAFA011UU", "MAFA009UU");
+//	  employeeService.setSupervisor("MAFA009UU", "MAFA002UU");
+//	  employeeService.setSupervisor("MAFA006UU", "MAFA012UU");
+//	  employeeService.setSupervisor("MAFA012UU", "MAFA004UU");
+//	  employeeService.setSupervisor("MAFA007UU", "MAFA004UU");
+//	  employeeService.setSupervisor("MAFA005UU", "MAFA004UU");
+//	  employeeService.setSupervisor("MAFA010UU", "MAFA007UU");
+//	  employeeService.setSupervisor("MAFA014UU", "MAFA007UU");
+//	  employeeService.setSupervisor("MAFA016UU", "MAFA010UU");
+//	  employeeService.setSupervisor("MAFA017UU", "MAFA007UU");
+//	  employeeService.setSupervisor("MAFA004UU", "MAFA002UU");
+//	  employeeService.setSupervisor("MAFA002UU", "MAFA001UU");
+//	  employeeService.setSupervisor("MAFA001UU", "MAFA002UU");
 	  
 	  // Add users 
-	  appUserService.saveUser(new AppUser("Vital", "12345", "MAFA018UU")); 
+//	  appUserService.saveUser(new AppUser("vitalilunga@maisonfaradja.org", "12345", "MAFA018UU")); 
 	  
 	  // Add roles to users
-	  appUserService.addRoleToUser("Vital", "USER");
-	  appUserService.addRoleToUser("Vital", "SUPERVISOR");
-	  appUserService.addRoleToUser("Vital", "HR");
-	  appUserService.addRoleToUser("Vital", "ADMIN");
-	  appUserService.addRoleToUser("Vital", "ADM4");//
+//	  appUserService.addRoleToUser("vitalilunga@maisonfaradja.org", "USER");
+//	  appUserService.addRoleToUser("vitalilunga@maisonfaradja.org", "SUPERVISOR");
+//	  appUserService.addRoleToUser("vitalilunga@maisonfaradja.org", "HR");
+//	  appUserService.addRoleToUser("vitalilunga@maisonfaradja.org", "ADMIN");
+//	  appUserService.addRoleToUser("vitalilunga@maisonfaradja.org", "ADM4");//
 	  
 	  //Creating a timesheet line
 //	  TimesheetPeriods tp=new TimesheetPeriods();
@@ -204,6 +199,9 @@ public class TimesheetServiceApplication {
 //	  savedSheetLineRepository.save(userSavedS16);
 //	  savedSheetLineRepository.save(userSavedS17);
 //	  savedSheetLineRepository.save(userSavedS18); 
-	  System.out.println("Done"); }; }
+	  System.out.println("Done");
+	  };
+	  
+	}
 	 
 }
